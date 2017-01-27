@@ -1,0 +1,56 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+#root {
+    height: 100%;
+}
+
+.App {
+    height: 100%;
+    font-family: 'Roboto', sans-serif;
+}
+
+.MenuItemActive {
+    background-color: #E0F7FA !important;
+}
+
+.ChannelContainer {
+    padding: 1em !important;
+}
+
+.HasNewMessages {
+    font-weight: 700 !important;
+}
+
+.VerticalAlignMiddle {
+    vertical-align: middle !important;
+}
+
+.DrawerListTitle {
+    padding: 1em !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+}
+
+.Padding1 {
+    padding: 1em !important;
+}
+
+.ChooseNickDialogContainer {
+    text-align: center;
+    margin: 0 auto;
+    max-width: 25em;
+}
+
+.ChooseNickDialog {
+    padding-left: 1em;
+    padding-right: 1em;
+}
+
+.MessageList {
+    width: 100%;
+    overflow-y: scroll;
+}

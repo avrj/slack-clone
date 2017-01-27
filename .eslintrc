@@ -1,0 +1,64 @@
+{
+  "parser": "babel-eslint",
+  "env": {
+    "browser": true,
+    "node": true,
+    "es6": true,
+  },
+  "plugins": [
+    "react",
+  ],
+  "parserOptions": {
+    "sourceType": "module",
+    "ecmaVersion": 6,
+    "ecmaFeatures": {
+      "impliedStrict": true,
+      "experimentalObjectRestSpread": true,
+      "jsx": true
+    }
+  },
+  "extends": "airbnb",
+  "rules": {
+    "eqeqeq": [
+      "error",
+      "allow-null"
+    ],
+    "no-void": "error",
+    "react/jsx-filename-extension": [
+      "error",
+      {
+        "extensions": [
+          ".js"
+        ]
+      }
+    ],
+    "react/no-string-refs": "warn",
+    "react/no-find-dom-node": "warn",
+    "react/no-unused-prop-types": [
+      "off",
+      {
+        "skipShapeProps": true
+      }
+    ],
+    "react/forbid-prop-types": [
+      "warn",
+      {
+        "forbid": [
+          "any",
+          "array",
+          "object"
+        ]
+      }
+    ],
+    "jsx-a11y/no-static-element-interactions": "warn",
+    "no-plusplus": [
+      "error",
+      {
+        "allowForLoopAfterthoughts": true
+      }
+    ],
+    "generator-star-spacing": 0,
+    "linebreak-style": "off",
+    "object-property-newline": "error",
+  }
+}
