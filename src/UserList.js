@@ -22,7 +22,7 @@ class UserList extends Component {
 
     return (
       <div>
-        <div className="DrawerListTitle">Users</div>
+        <div className="DrawerListTitle">{this.props.title}</div>
 
         <div>
           {renderListItems()}
@@ -33,6 +33,7 @@ class UserList extends Component {
 }
 
 UserList.propTypes = {
+  title: React.PropTypes.string.isRequired,
   activeUser: React.PropTypes.string,
   loggedUser: React.PropTypes.string.isRequired,
   users: React.PropTypes.object.isRequired,

@@ -35,14 +35,18 @@ class Login extends Component {
         password: this.state.password,
       }),
     })
-            .then(response => response.json())
-            .then((responseJson) => {
-              browserHistory.push({ pathname: '/chat',
-                state: {
-                  username: responseJson.local.username,
-                } });
-            })
-            .catch((error) => { this.setState({ signInError: true }); })
+        .then(response => response.json())
+        .then((responseJson) => {
+          browserHistory.push({
+            pathname: '/chat',
+            state: {
+              username: responseJson.local.username,
+            },
+          });
+        })
+        .catch((error) => {
+          this.setState({ signInError: true });
+        })
 
   render() {
     const { username, password } = this.state;
@@ -84,7 +88,6 @@ class Login extends Component {
               fullWidth
               label="Login"
               primary
-
             />
           </form>
           <p>or <Link to="/register">create an account</Link></p>

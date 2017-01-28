@@ -1,603 +1,619 @@
-import React, { Component } from 'react';
-import io from 'socket.io-client';
-import './App.css';
-import Channel from './Channel';
-import ChatInput from './ChatInput';
-import ChannelList from './ChannelList';
-import UserList from './UserList';
-import JoinChannelDialog from './JoinChannelDialog';
-import Dialog from 'material-ui/Dialog';
-import Drawer from 'material-ui/Drawer';
-import AppBar from 'material-ui/AppBar';
-import IconMenu from 'material-ui/IconMenu';
-import IconButton from 'material-ui/IconButton';
-import MenuItem from 'material-ui/MenuItem';
-import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert';
-import UserProfile from './UserProfile';
-import { browserHistory } from 'react-router';
-import events from '../events';
+import React, {Component} from "react";
+import io from "socket.io-client";
+import "./App.css";
+import Channel from "./Channel";
+import ChatInput from "./ChatInput";
+import ChannelList from "./ChannelList";
+import UserList from "./UserList";
+import JoinChannelDialog from "./JoinChannelDialog";
+import AttentionDialog from "./AttentionDialog";
+import Drawer from "material-ui/Drawer";
+import AppBar from "material-ui/AppBar";
+import IconMenu from "material-ui/IconMenu";
+import IconButton from "material-ui/IconButton";
+import MenuItem from "material-ui/MenuItem";
+import MoreVertIcon from "material-ui/svg-icons/navigation/more-vert";
+import UserProfile from "./UserProfile";
+import {browserHistory} from "react-router";
+import events from "../events";
 
 class App extends Component {
-  constructor() {
-    super();
+    constructor() {
+        super();
 
-    this.initialState = {
-      users: {},
-      channels: {},
-      activeChannel: null,
-      activeUser: null,
-      loggedUser: null,
-      showDrawer: false,
-      drawerDocked: false,
-      connecting: true,
-      connected: false,
-      disconnectedByClient: false,
-    };
+        this.initialState = {
+            users: {},
+            channels: {},
+            activeChannel: null,
+            activeUser: null,
+            loggedUser: null,
+            showDrawer: false,
+            drawerDocked: false,
+            connecting: true,
+            connected: false,
+            disconnectedByClient: false,
+        };
 
-    this.state = this.initialState;
+        this.persistentActiveChannelIdentifier = 'activeChannel';
+        this.persistentActiveUserIdentifier = 'activeUser';
+        this.persistentLoggedUserIdentifier = 'loggedUser';
 
-    this.client = io();
+        this.state = this.initialState;
 
-    this.client.on(events.connect, this._handleConnect);
-    this.client.on(events.disconnect, this._handleDisconnect);
-    this.client.on(events.error, this._handleError);
-    this.client.on(events.online, this._handleOnline);
-    this.client.on(events.offline, this._handleOffline);
-    this.client.on(events.join, this._handleJoin);
-    this.client.on(events.leave, this._handleLeave);
-    this.client.on(events.msg, this._handleMsg);
-    this.client.on(events.privateMsg, this._handlePrivateMsg);
-    this.client.on(events.ownPrivateMsg, this._handleOwnPrivateMsg);
-  }
+        this.client = io();
 
-  componentWillMount = () => {
-    this.setDrawerVisibilityByWindowWidth();
-  }
+        this.client.on(events.connect, this._handleConnect);
+        this.client.on(events.disconnect, this._handleDisconnect);
+        this.client.on(events.error, this._handleError);
+        this.client.on(events.online, this._handleOnline);
+        this.client.on(events.offline, this._handleOffline);
+        this.client.on(events.join, this._handleJoin);
+        this.client.on(events.leave, this._handleLeave);
+        this.client.on(events.msg, this._handleMsg);
+        this.client.on(events.privateMsg, this._handlePrivateMsg);
+        this.client.on(events.ownPrivateMsg, this._handleOwnPrivateMsg);
+    }
 
-  setDrawerVisibilityByWindowWidth = () => {
-    const mql = window.matchMedia('(min-width: 800px)');
+    componentWillMount = () => {
+        this.setDrawerVisibilityByWindowWidth();
+    }
 
-    mql.addListener(this.onWindowWidthChange);
+    setDrawerVisibilityByWindowWidth = () => {
+        const mql = window.matchMedia('(min-width: 800px)');
 
-    this.setState({
-      mql,
-      showDrawer: mql.matches,
-      drawerDocked: mql.matches,
-    });
-  }
+        mql.addListener(this.onWindowWidthChange);
 
-  componentWillUnmount = () => {
-    this.state.mql.removeListener(this.onWindowWidthChange);
-  }
+        this.setState({
+            mql,
+            showDrawer: mql.matches,
+            drawerDocked: mql.matches,
+        });
+    }
 
-  onWindowWidthChange = () => {
-    this.setState({
-      showDrawer: this.state.mql.matches,
-      drawerDocked: this.state.mql.matches,
-    });
-  }
+    componentWillUnmount = () => {
+        this.state.mql.removeListener(this.onWindowWidthChange);
+    }
 
-  _handleConnect = () => {
-    fetch('/users',
-      {
-        credentials: 'include',
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-      })
-            .then(response => response.json())
-            .then((responseJson) => {
-              if (!localStorage.getItem('loggedUser')) {
-                localStorage.setItem('loggedUser', this.props.location.state.username);
-              }
+    onWindowWidthChange = () => {
+        this.setState({
+            showDrawer: this.state.mql.matches,
+            drawerDocked: this.state.mql.matches,
+        });
+    }
 
-              const loggedUser = localStorage.getItem('loggedUser');
-
-              const users = {};
-
-              for (let i = 0; i < responseJson.length; i++) {
-                users[responseJson[i].local.username] = { online: responseJson[i].local.online, messages: [] };
-              }
-
-              fetch('/user/channels',
-                {
-                  credentials: 'include',
-                  method: 'GET',
-                  headers: {
+    _handleConnect = () => {
+        fetch('/users',
+            {
+                credentials: 'include',
+                method: 'GET',
+                headers: {
                     Accept: 'application/json',
                     'Content-Type': 'application/json',
-                  },
-                })
-                    .then(response => response.json())
-                    .then((responseJson) => {
-                      const channels = {};
+                },
+            })
+            .then(response => response.json())
+            .then(this.handleOnConnectFetchUsersResponse)
+            .catch((error) => {
+                alert(`Error retrieving users: ${error}`);
+            });
+    }
 
-                      for (let i = 0; i < responseJson.local.channels.length; i++) {
-                        channels[responseJson.local.channels[i]] = {
-                          messages: [],
-                          earlierMessagesLoadedBefore: false,
-                        };
-                      }
+    handleOnConnectFetchUsersResponse = (responseJson) => {
+        if (!localStorage.getItem(this.persistentLoggedUserIdentifier)) {
+            localStorage.setItem(this.persistentLoggedUserIdentifier, this.props.location.state.username);
+        }
 
-                      const activeChannel = localStorage.getItem('activeChannel') ? localStorage.getItem('activeChannel') : Object.keys(channels)[0];
+        const loggedUser = localStorage.getItem(this.persistentLoggedUserIdentifier);
 
-                      if (localStorage.getItem('activeUser')) {
-                        this.setState({
-                          activeChannel: null,
-                          activeUser: localStorage.getItem('activeUser'),
-                          loggedUser,
-                          users,
-                          connected: true,
-                          connecting: false,
-                          channels,
-                        });
-                      } else {
-                        fetch(`/channel/${localStorage.getItem('activeChannel')}/messages`,
-                          {
+        const users = {};
+
+        for (let i = 0; i < responseJson.length; i++) {
+            users[responseJson[i].local.username] = {online: responseJson[i].local.online, messages: []};
+        }
+
+        fetch('/user/channels',
+            {
+                credentials: 'include',
+                method: 'GET',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then((responseJson) => {
+                const channels = {};
+
+                for (let i = 0; i < responseJson.local.channels.length; i++) {
+                    channels[responseJson.local.channels[i]] = {
+                        messages: [],
+                        earlierMessagesLoadedBefore: false,
+                    };
+                }
+                if (localStorage.getItem(this.persistentActiveUserIdentifier)) {
+                    this.setState({
+                        activeChannel: null,
+                        activeUser: localStorage.getItem(this.persistentActiveUserIdentifier),
+                        loggedUser,
+                        users,
+                        connected: true,
+                        connecting: false,
+                        channels,
+                    });
+                } else {
+                    const activeChannel = localStorage.getItem(this.persistentActiveChannelIdentifier) ? localStorage.getItem(this.persistentActiveChannelIdentifier) : Object.keys(channels)[0];
+
+
+                    fetch(`/channel/${activeChannel}/messages`,
+                        {
                             credentials: 'include',
                             method: 'GET',
                             headers: {
-                              Accept: 'application/json',
-                              'Content-Type': 'application/json',
+                                Accept: 'application/json',
+                                'Content-Type': 'application/json',
                             },
-                          })
-                                .then(response => response.json())
-                                .then((responseJson) => {
-                                  const messages = [];
+                        })
+                        .then(response => response.json())
+                        .then((responseJson) => {
+                            const messages = [];
 
-                                  for (let i = 0; i < responseJson.length; i++) {
-                                    messages.push({
-                                      date: responseJson[i].timestamp,
-                                      user: responseJson[i].user,
-                                      msg: responseJson[i].text,
-                                    });
-                                  }
-
-                                    // const channels = JSON.parse(JSON.stringify(this.state.channels));
-
-                                  channels[localStorage.getItem('activeChannel')] = {
-                                    hasNewMessages: false,
-                                    earlierMessagesLoadedBefore: true,
-                                    messages: messages.concat(channels[localStorage.getItem('activeChannel')].messages),
-                                  };
-
-                                  this.setState({
-                                    activeChannel: localStorage.getItem('activeChannel'),
-                                    activeUser: null,
-                                    loggedUser,
-                                    users,
-                                    connected: true,
-                                    connecting: false,
-                                    channels,
-                                  });
-                                })
-                                .catch((error) => {
-                                  alert(`Error retrieving channels messages: ${error}`);
+                            for (let i = 0; i < responseJson.length; i++) {
+                                messages.push({
+                                    date: responseJson[i].timestamp,
+                                    user: responseJson[i].user,
+                                    msg: responseJson[i].text,
                                 });
-                      }
-                    })
-                    .catch((error) => {
-                      alert('Error retrieving user\'s channels');
-                    });
+                            }
+
+                            // const channels = JSON.parse(JSON.stringify(this.state.channels));
+
+                            channels[activeChannel] = {
+                                hasNewMessages: false,
+                                earlierMessagesLoadedBefore: true,
+                                messages: messages.concat(channels[activeChannel].messages),
+                            };
+
+                            this.setState({
+                                activeChannel,
+                                activeUser: null,
+                                loggedUser,
+                                users,
+                                connected: true,
+                                connecting: false,
+                                channels,
+                            });
+                        })
+                        .catch((error) => {
+                            alert(`Error retrieving channels messages: ${error}`);
+                        });
+                }
             })
             .catch((error) => {
-              alert('Error retrieving users: ' + error);
+                alert('Error retrieving user\'s channels');
             });
-  }
-
-  _handleDisconnect = () => {
-    this.setState({ connected: false });
-  }
-
-  _handleError = (error) => {
-    if (error == 'Unauthorized') {
-      browserHistory.push({
-        pathname: '/',
-        state: {
-          message: 'Please sign in to enter the chat.',
-        },
-      });
-    } else {
-      alert(`We've encountered an unexpected error: ${error}`);
     }
-  }
 
-  _handleJoin = (channel) => {
-    fetch(`/channel/${channel}/messages`,
-      {
-        credentials: 'include',
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-      })
+    _handleDisconnect = () => {
+        this.setState({connected: false});
+    }
+
+    _handleError = (error) => {
+        if (error == 'Unauthorized') {
+            browserHistory.push({
+                pathname: '/',
+                state: {
+                    message: 'Please sign in to enter the chat.',
+                },
+            });
+        } else {
+            alert(`We've encountered an unexpected error: ${error}`);
+        }
+    }
+
+    _handleJoin = (channel) => {
+        fetch(`/channel/${channel}/messages`,
+            {
+                credentials: 'include',
+                method: 'GET',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+            })
             .then(response => response.json())
-            .then((responseJson) => {
-              const messages = [];
+            .then(responseJson => this.handleJoinedChannelMessages(responseJson, channel))
+            .catch(error => alert(`Error retrieving channels messages: ${error}`));
+    };
 
-              for (let i = 0; i < responseJson.length; i++) {
-                messages.push({
-                  date: responseJson[i].timestamp,
-                  user: responseJson[i].user,
-                  msg: responseJson[i].text,
-                });
-              }
+    handleJoinedChannelMessages = (responseJson, channel) => {
+        const messages = [];
 
-              const channels = JSON.parse(JSON.stringify(this.state.channels));
+        for (let i = 0; i < responseJson.length; i++) {
+            messages.push({
+                date: responseJson[i].timestamp,
+                user: responseJson[i].user,
+                msg: responseJson[i].text,
+            });
+        }
 
-              channels[channel] = {
-                hasNewMessages: false,
-                earlierMessagesLoadedBefore: true,
-                messages,
-              };
+        const channels = JSON.parse(JSON.stringify(this.state.channels));
 
-              this.setState({
-                channels,
+        channels[channel] = {
+            hasNewMessages: false,
+            earlierMessagesLoadedBefore: true,
+            messages,
+        };
+
+        this.setState({
+            channels,
+            activeChannel: channel,
+            activeUser: null,
+        });
+
+        this.setPersistentActiveChannel(channel);
+    };
+
+    _handleMsg = (msg) => {
+        const channel = msg.room;
+
+        if (!this.state.channels[channel]) return;
+
+        const channels = JSON.parse(JSON.stringify(this.state.channels));
+
+        const messages = channels[channel].messages;
+
+        messages.push(msg);
+
+        channels[channel].messages = messages;
+
+        if (channel !== this.state.activeChannel && msg.user !== this.state.loggedUser) {
+            channels[channel].hasNewMessages = true;
+        }
+
+        this.setState({channels});
+    };
+
+    _handleOnline = (user) => {
+        const users = JSON.parse(JSON.stringify(this.state.users));
+
+        if (users[user]) {
+            users[user].online = true;
+        } else {
+            users[user] = {online: true, messages: []};
+        }
+
+        this.setState({users});
+    };
+
+    _handleOffline = (user) => {
+        const users = JSON.parse(JSON.stringify(this.state.users));
+
+        users[user].online = false;
+
+        this.setState({users});
+    }
+
+    _handlePrivateMsg = (data) => {
+        const users = JSON.parse(JSON.stringify(this.state.users));
+
+        const {from} = data;
+
+        const msg = {
+            user: from,
+            msg: data.msg,
+        };
+
+        if (users[from]) {
+            const messages = users[from].messages;
+
+            messages.push(msg);
+
+            users[from].messages = messages;
+        } else {
+            users[from] = {messages: [msg]};
+        }
+
+        if (this.state.activeUser !== data.from) {
+            users[from].hasNewMessages = true;
+        }
+
+        this.setState({users});
+    };
+
+    _handleOwnPrivateMsg = (data) => {
+        const users = JSON.parse(JSON.stringify(this.state.users));
+
+        const {msg, to} = data;
+
+        if (users[to]) {
+            const messages = users[to].messages;
+
+            messages.push({
+                user: this.state.loggedUser,
+                msg,
+            });
+
+            users[to].messages = messages;
+        } else {
+            users[to] = {
+                messages: [
+                    {
+                        user: this.state.loggedUser,
+                        msg,
+                    },
+                ],
+            };
+        }
+
+        this.setState({
+            users,
+        });
+    };
+
+    join = (channelToJoin) => {
+        if (this.state.channels[channelToJoin]) {
+            this.setState({activeChannel: channelToJoin, activeUser: null});
+        } else {
+            this.client.emit('join', channelToJoin);
+        }
+
+        this.setState({
+            showDrawer: false,
+            showJoinChannelDialog: false,
+        });
+    }
+
+    leaveChannel = () => {
+        this.client.emit('leave', this.state.activeChannel);
+    }
+
+    _handleLeave = (channel) => {
+        const channels = JSON.parse(JSON.stringify(this.state.channels));
+
+        delete channels[channel];
+
+        const channelNames = Object.keys(channels);
+
+        this.setState({
+            channels,
+        });
+
+        if (channel == this.state.activeChannel) {
+            this.setState({
+                activeChannel: channelNames.length > 0 ? channelNames[0] : null,
+                activeUser: channelNames.length === 0 ? this.state.loggedUser : null,
+            });
+
+            if (channelNames.length > 0) {
+                localStorage.setItem(this.persistentActiveChannelIdentifier, channelNames[0]);
+            } else {
+                localStorage.removeItem(this.persistentActiveChannelIdentifier);
+            }
+        }
+    }
+
+    sendMsg = (msg) => {
+        if (this.state.activeChannel) {
+            this.client.emit(events.msg, {room: this.state.activeChannel, msg});
+        } else {
+            this.client.emit(events.privateMsg, {to: this.state.activeUser, msg});
+        }
+    }
+
+
+    renderChannel = () => {
+        if (this.state.activeChannel) {
+            if (this.state.channels[this.state.activeChannel]) {
+                return (
+                    <Channel
+                        messages={this.state.channels[this.state.activeChannel].messages}
+                    />);
+            }
+        } else {
+            return (<Channel
+                messages={this.state.users[this.state.activeUser] ? this.state.users[this.state.activeUser].messages : []}
+            />);
+        }
+    };
+
+    setActiveChannel = (channel) => {
+        if (this.state.channels[channel].earlierMessagesLoadedBefore) {
+            const channels = JSON.parse(JSON.stringify(this.state.channels));
+
+            channels[channel].hasNewMessages = false;
+
+            this.setState({channels});
+
+
+            this.setState({
                 activeChannel: channel,
                 activeUser: null,
-              });
-
-              localStorage.setItem('activeChannel', channel);
-              localStorage.removeItem('activeUser');
-            })
-            .catch((error) => {
-              alert(`Error retrieving channels messages: ${error}`);
+                showDrawer: this.state.mql.matches,
             });
-  };
 
-  _handleMsg = (msg) => {
-    if (!this.state.channels[msg.room]) return;
-
-    const channels = JSON.parse(JSON.stringify(this.state.channels));
-
-    const messages = channels[msg.room].messages;
-
-    messages.push(msg);
-
-    if (msg.room !== this.state.activeChannel && msg.user !== this.state.loggedUser) {
-      channels[msg.room].hasNewMessages = true;
-    }
-
-    this.setState({ channels });
-  };
-
-  _handleOnline = (user) => {
-    const users = JSON.parse(JSON.stringify(this.state.users));
-
-    if (users[user]) {
-      users[user].online = true;
-    } else {
-      users[user] = { online: true, messages: [] };
-    }
-
-    this.setState({ users });
-  };
-
-  _handleOffline = (user) => {
-    const users = JSON.parse(JSON.stringify(this.state.users));
-
-    users[user].online = false;
-
-    this.setState({ users });
-  }
-
-  _handlePrivateMsg = (data) => {
-    const users = JSON.parse(JSON.stringify(this.state.users));
-
-    if (users[data.from]) {
-      const messages = users[data.from].messages;
-
-      messages.push({
-        user: data.from,
-        msg: data.msg,
-      });
-
-
-      if (this.state.activeUser !== data.from) {
-        users[data.from].hasNewMessages = true;
-      }
-
-      this.setState({ users });
-    } else {
-      users[data.from] = { messages: [{ user: data.from, msg: data.msg }] };
-
-      if (this.state.activeUser !== data.from) {
-        users[data.from].hasNewMessages = true;
-      }
-
-      this.setState({
-        users,
-      });
-    }
-  };
-
-  _handleOwnPrivateMsg = (data) => {
-    const users = JSON.parse(JSON.stringify(this.state.users));
-
-    if (users[data.to]) {
-      const messages = users[data.to].messages;
-
-      messages.push({
-        user: this.state.loggedUser,
-        msg: data.msg,
-      });
-
-      this.setState({
-        users,
-      });
-    } else {
-      users[data.to] = { messages: [{ user: this.state.loggedUser, msg: data.msg }] };
-      this.setState({
-        users,
-      });
-    }
-  };
-
-  join = (channelToJoin) => {
-    if (this.state.channels[channelToJoin]) {
-      this.setState({ activeChannel: channelToJoin, activeUser: null });
-    } else {
-      this.client.emit('join', channelToJoin);
-    }
-  }
-
-  leaveChannel = () => {
-    this.client.emit('leave', this.state.activeChannel);
-  }
-
-  _handleLeave = (channel) => {
-    const channels = JSON.parse(JSON.stringify(this.state.channels));
-
-    delete channels[channel];
-
-    const channelNames = Object.keys(channels);
-
-    this.setState({
-      channels,
-    });
-
-    if (channel == this.state.activeChannel) {
-      this.setState({
-        activeChannel: channelNames.length > 0 ? channelNames[0] : null,
-        activeUser: channelNames.length === 0 ? this.state.loggedUser : null,
-      });
-
-      if (channelNames.length > 0) {
-        localStorage.setItem('activeChannel', channelNames[0]);
-      } else {
-        localStorage.removeItem('activeChannel');
-      }
-    }
-  }
-
-  sendMsg = (msg) => {
-    if (this.state.activeChannel) {
-      this.client.emit(events.msg, { room: this.state.activeChannel, msg });
-    } else {
-      this.client.emit(events.privateMsg, { to: this.state.activeUser, msg });
-    }
-  }
-
-
-  renderChannel = () => {
-    if (this.state.activeChannel) {
-      if (!this.state.activeChannel) return null;
-
-      if (this.state.channels[this.state.activeChannel]) {
-        return (
-          <Channel
-            messages={this.state.channels[this.state.activeChannel].messages}
-          />);
-      }
-    } else {
-      return (<Channel
-        messages={this.state.users[this.state.activeUser] ? this.state.users[this.state.activeUser].messages : []}
-      />);
-    }
-  };
-
-  setActiveChannel = (channel) => {
-    if (this.state.channels[channel].earlierMessagesLoadedBefore) {
-      const channels = JSON.parse(JSON.stringify(this.state.channels));
-
-      channels[channel].hasNewMessages = false;
-
-      this.setState({ channels });
-
-
-      this.setState({
-        activeChannel: channel,
-        activeUser: null,
-        showDrawer: this.state.mql.matches,
-      });
-
-      localStorage.setItem('activeChannel', channel);
-      localStorage.removeItem('activeUser');
-    } else {
-      fetch(`/channel/${channel}/messages`,
-        {
-          credentials: 'include',
-          method: 'GET',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
-        })
-                .then(response => response.json())
-                .then((responseJson) => {
-                  const messages = [];
-
-                  for (let i = 0; i < responseJson.length; i++) {
-                    messages.push({
-                      date: responseJson[i].timestamp,
-                      user: responseJson[i].user,
-                      msg: responseJson[i].text,
-                    });
-                  }
-
-                  const channels = JSON.parse(JSON.stringify(this.state.channels));
-
-                  channels[channel] = {
-                    hasNewMessages: false,
-                    earlierMessagesLoadedBefore: true,
-                    messages: messages.concat(this.state.channels[channel].messages),
-                  };
-
-                  this.setState({
-                    channels,
-                    activeChannel: channel,
-                    activeUser: null,
-                    showDrawer: this.state.mql.matches,
-                  });
-
-                  localStorage.setItem('activeChannel', channel);
-                  localStorage.removeItem('activeUser');
+            this.setPersistentActiveChannel(channel);
+        } else {
+            fetch(`/channel/${channel}/messages`,
+                {
+                    credentials: 'include',
+                    method: 'GET',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json',
+                    },
                 })
+                .then(response => response.json())
+                .then(responseJson => this.handleActiveChannelMessages(responseJson, channel))
                 .catch((error) => {
-                  alert('Error retrieving channels messages');
+                    alert('Error retrieving channels messages');
                 });
+        }
     }
-  }
 
-  setActiveUser = (user) => {
-    const users = JSON.parse(JSON.stringify(this.state.users));
+    handleActiveChannelMessages = (responseJson, channel) => {
+        const messages = [];
 
-    if (users[user]) users[user].hasNewMessages = false;
-
-    this.setState({
-      users,
-      activeChannel: null,
-      activeUser: user,
-      showDrawer: this.state.mql.matches,
-    });
-
-    localStorage.setItem('activeUser', user);
-    localStorage.removeItem('activeChannel');
-  }
-
-  signOut = () => {
-    this.client.disconnect();
-
-    const itemsToRemove = ['activeChannel', 'activeUser', 'loggedUser'];
-
-    itemsToRemove.map(item => localStorage.removeItem(item));
-
-    this.setState(Object.assign({}, this.initialState, { disconnectedByClient: true }));
-
-    return fetch('/logout',
-      {
-        credentials: 'include',
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-      })
-            .then(response => response.json())
-            .then((responseJson) => {
-              if (responseJson.success) {
-                browserHistory.push({
-                  pathname: '/',
-                  state: {
-                    message: 'You are now signed out.',
-                  },
-                });
-              } else {
-                alert('Unexpected error while trying to sign out');
-              }
-            })
-            .catch((error) => {
-              alert(`Unexpected error while trying to sign out: ${error}`);
+        for (let i = 0; i < responseJson.length; i++) {
+            messages.push({
+                date: responseJson[i].timestamp,
+                user: responseJson[i].user,
+                msg: responseJson[i].text,
             });
-  }
+        }
 
-  renderChat = () => {
-    const { loggedUser, activeChannel, activeUser } = this.state;
+        const channels = JSON.parse(JSON.stringify(this.state.channels));
 
-    if (this.state.connecting) {
-      return (<Dialog
-        title="Connecting"
-        modal
-        open
-      >Just a sec...</Dialog>);
-    } else if (this.state.connected) {
-      return (<div style={{ height: '100%' }}>
-        {this.state.showJoinChannelDialog && <JoinChannelDialog
-          join={(channel) => {
-            this.join(channel);
-            this.setState({ showDrawer: false, showJoinChannelDialog: false });
-          }}
-        />}
-        <Drawer
-          docked={this.state.drawerDocked}
-          open={this.state.showDrawer}
-          onRequestChange={showDrawer => this.setState({ showDrawer })}
-        >
-          <UserProfile loggedUser={loggedUser} />
-          <ChannelList
-            showJoinChannelDialog={() => this.setState({ showJoinChannelDialog: true })}
-            activeChannel={activeChannel}
-            setActiveChannel={channel => this.setActiveChannel(channel)}
-            channels={this.state.channels}
-          />
+        channels[channel] = {
+            hasNewMessages: false,
+            earlierMessagesLoadedBefore: true,
+            messages: messages.concat(this.state.channels[channel].messages),
+        };
 
-          <UserList
-            loggedUser={loggedUser}
-            activeUser={activeUser}
-            setActiveUser={user => this.setActiveUser(user)}
-            users={this.state.users}
-          />
-        </Drawer>
+        this.setState({
+            channels,
+            activeChannel: channel,
+            activeUser: null,
+            showDrawer: this.state.mql.matches,
+        });
 
-        <div style={{ height: '90%' }}>
-          <AppBar
-            title={activeChannel ? `# ${activeChannel}` : `${activeUser}${activeUser === loggedUser ? ' (you)' : ''}`}
-            iconElementRight={<IconMenu
-              iconButtonElement={
-                <IconButton><MoreVertIcon /></IconButton>
-                            }
-              targetOrigin={{ horizontal: 'right', vertical: 'top' }}
-              anchorOrigin={{ horizontal: 'right', vertical: 'top' }}
-            >
-              {activeChannel &&
-                <MenuItem primaryText={`Leave #${activeChannel}`} onTouchTap={this.leaveChannel} />}
-              <MenuItem primaryText="Sign out" onTouchTap={this.signOut} />
-            </IconMenu>}
-            onLeftIconButtonTouchTap={() => {
-              this.setState({ showDrawer: !this.state.showDrawer });
-            }}
-          />
-          {this.renderChannel()}</div>
-        <div style={{ height: '10%' }}>{(activeChannel || activeUser) &&
-        <ChatInput sendMsg={this.sendMsg} />}</div>
-      </div>);
-    } else if (this.state.disconnectedByClient) {
-      return (<Dialog
-        title="Disconnected by client"
-        modal
-        open
-      >You are now disconnected.</Dialog>);
+        this.setPersistentActiveChannel(channel);
+    };
+
+    setActiveUser = (user) => {
+        const users = JSON.parse(JSON.stringify(this.state.users));
+
+        if (users[user]) users[user].hasNewMessages = false;
+
+        this.setState({
+            users,
+            activeChannel: null,
+            activeUser: user,
+            showDrawer: this.state.mql.matches,
+        });
+
+        this.setPersistentActiveUser(user);
     }
-    return (
-      <Dialog
-        title="Connection lost"
-        modal
-        open
-      >You will be reconnected
-                automatically if the chat server responds.</Dialog>);
-  }
+
+    signOut = () => fetch('/logout',
+        {
+            credentials: 'include',
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(this.handleSignOutResponse)
+        .catch(error => alert(`Unexpected error while trying to sign out: ${error}`));
+
+    handleSignOutResponse = (responseJson) => {
+        if (responseJson.success) {
+            this.client.disconnect();
+
+            this.removePersistentData();
+
+            this.setState(Object.assign({}, this.initialState, {disconnectedByClient: true}));
+
+            browserHistory.push({
+                pathname: '/',
+                state: {
+                    message: 'You are now signed out.',
+                },
+            });
+        } else {
+            alert('Unexpected error while trying to sign out');
+        }
+    };
+
+    setPersistentActiveChannel = (channel) => {
+        localStorage.setItem(this.persistentActiveChannelIdentifier, channel);
+        localStorage.removeItem(this.persistentActiveUserIdentifier);
+    };
+
+    setPersistentActiveUser = (user) => {
+        localStorage.setItem(this.persistentActiveUserIdentifier, user);
+        localStorage.removeItem(this.persistentActiveChannelIdentifier);
+    };
+
+    removePersistentData = () => {
+        const itemsToRemove = [this.persistentActiveChannelIdentifier, this.persistentActiveUserIdentifier, this.persistentLoggedUserIdentifier];
+
+        itemsToRemove.map(item => localStorage.removeItem(item));
+    };
+
+    renderChat = () => {
+        const {loggedUser, activeChannel, activeUser} = this.state;
+
+        if (this.state.connecting) {
+            return (<AttentionDialog title="Connecting" text="Just a sec..."/>);
+        } else if (this.state.connected) {
+            return (<div style={{height: '100%'}}>
+                {this.state.showJoinChannelDialog && <JoinChannelDialog
+                    join={this.join}
+                />}
+                <Drawer
+                    docked={this.state.drawerDocked}
+                    open={this.state.showDrawer}
+                    onRequestChange={showDrawer => this.setState({showDrawer})}
+                >
+                    <UserProfile loggedUser={loggedUser}/>
+                    <ChannelList
+                        showJoinChannelDialog={() => this.setState({showJoinChannelDialog: true})}
+                        activeChannel={activeChannel}
+                        setActiveChannel={channel => this.setActiveChannel(channel)}
+                        channels={this.state.channels}
+                    />
+
+                    <UserList
+                        title="Users"
+                        loggedUser={loggedUser}
+                        activeUser={activeUser}
+                        setActiveUser={user => this.setActiveUser(user)}
+                        users={this.state.users}
+                    />
+                </Drawer>
+
+                <div style={{height: '90%'}}>
+                    <AppBar
+                        title={activeChannel ? `# ${activeChannel}` : `${activeUser}${activeUser === loggedUser ? ' (you)' : ''}`}
+                        iconElementRight={<IconMenu
+                            iconButtonElement={
+                                <IconButton><MoreVertIcon /></IconButton>
+                            }
+                            targetOrigin={{horizontal: 'right', vertical: 'top'}}
+                            anchorOrigin={{horizontal: 'right', vertical: 'top'}}
+                        >
+                            {activeChannel &&
+                            <MenuItem primaryText={`Leave #${activeChannel}`} onTouchTap={this.leaveChannel}/>}
+                            <MenuItem primaryText="Sign out" onTouchTap={this.signOut}/>
+                        </IconMenu>}
+                        onLeftIconButtonTouchTap={() => {
+                            this.setState({showDrawer: !this.state.showDrawer});
+                        }}
+                    />
+                    {this.renderChannel()}</div>
+                <div style={{height: '10%'}}>{(activeChannel || activeUser) &&
+                <ChatInput sendMsg={this.sendMsg}/>}</div>
+            </div>);
+        } else if (this.state.disconnectedByClient) {
+            return (<AttentionDialog title="Disconnected by client" text="You are now disconnected."/>);
+        }
+        return (
+            <AttentionDialog
+                title="Connection lost" text="You will be reconnected
+                automatically if the chat server responds."
+            />);
+    }
 
 
-  render() {
-    return (
-      <div className="App">
-        {this.renderChat()}
-      </div>
-    );
-  }
+    render() {
+        return (
+            <div className="App">
+                {this.renderChat()}
+            </div>
+        );
+    }
 }
 
 export default App;
