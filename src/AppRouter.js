@@ -6,15 +6,15 @@ import Register from './Register';
 import { Router, Route, IndexRoute, browserHistory } from 'react-router';
 class AppRouter extends Component {
   render() {
-      const routes = (<Route path="/" component={AppContainer}>
-          <IndexRoute component={Login} />
-          <Route path="chat" component={Chat} />
-          <Route path="register" component={Register} />
-      </Route>);
+    const routes = (<Route path="/" component={AppContainer}>
+      <IndexRoute component={Login} />
+      <Route path="chat" component={Chat} />
+      <Route path="register" component={Register} />
+    </Route>);
 
     return (
       <Router key={Math.random()} history={browserHistory}>
-          {routes}
+        {routes}
       </Router>
     );
   }

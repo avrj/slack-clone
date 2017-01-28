@@ -21,7 +21,7 @@ class MessageList extends Component {
     const renderMessages = () => {
       const { messages } = this.props;
 
-      const dateFormat = 'HH:mm:ss';
+      const dateFormat = 'LLL';
 
       if (messages.length > 0) {
         return (messages.map((message, i) => <p key={i}><strong>{message.user}</strong> {moment(message.date).format(dateFormat)}<br /> {message.msg}</p>));

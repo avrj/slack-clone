@@ -5,14 +5,14 @@ class UserProfile extends Component {
   render() {
     return (
       <div className="Padding1">
-        <Person className="VerticalAlignMiddle" /> {this.props.nick}
+        <Person className="VerticalAlignMiddle" /> {this.props.loggedUser}
       </div>
     );
   }
 }
 
 UserProfile.propTypes = {
-  nick: React.PropTypes.string.isRequired,
+  loggedUser: React.PropTypes.string.isRequired,
 };
 
 export default UserProfile;

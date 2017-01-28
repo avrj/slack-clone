@@ -7,7 +7,7 @@ class UserList extends Component {
       const { users } = this.props;
 
       return Object.keys(users).map((user, i) => {
-        const you = user === this.props.nick ? ' (you)' : '';
+        const you = user === this.props.loggedUser ? ' (you)' : '';
 
         return (<UserListItem
           active={this.props.activeUser === user}
@@ -34,7 +34,7 @@ class UserList extends Component {
 
 UserList.propTypes = {
   activeUser: React.PropTypes.string,
-  nick: React.PropTypes.string.isRequired,
+  loggedUser: React.PropTypes.string.isRequired,
   users: React.PropTypes.object.isRequired,
   setActiveUser: React.PropTypes.func.isRequired,
 };

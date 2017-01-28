@@ -103,52 +103,46 @@ app.post('/logout', (req, res) => {
 
 app.use('/js', express.static(`${__dirname}/public/js`, { maxAge: 86400000 }));
 
-
-app.get('/dev', (req, res) => {
-  User.find({}, { 'local.username': 1, 'local.online': 1, 'local.channels': 1, _id: 0 }, (err, data) => {
-    if (err) {
-      return res.status(500).json({ error: true });
-    }
-
-    res.json(data);
-  });
-});
-
 app.get('/users', (req, res) => {
   if (!req.user) return res.status(401).end();
 
-  User.find({}, { 'local.username': 1, 'local.online': 1, _id: 0 }, (err, data) => {
+  User.find({}, { 'local.username': 1, 'local.online': 1, _id: 0 }, (err, users) => {
     if (err) {
       return res.status(500).json({ error: true });
     }
 
-    res.json(data);
+    res.json(users);
   });
 });
 
 
-app.get('/channels', (req, res) => {
+app.get('/user/channels', (req, res) => {
   if (!req.user) return res.status(401).end();
 
-  Channel.find({}, { name: 1, _id: 0 }, (err, data) => {
-    if (err) {
-      console.log(err);
-      return res.status(500).json({ msg: 'internal server error' });
-    }
-    res.json(data);
-  });
+    User.findOne({'local.username': req.user}, { 'local.channels': 1, _id: 0 }, (err, channels) => {
+        if (err) {
+            return res.status(500).json({ error: true });
+        }
+
+        res.json(channels);
+    });
 });
 
 app.get('/channel/:name/messages', (req, res) => {
   if (!req.user) return res.status(401).end();
 
-  Message.find({ channel: req.params.name }, (err, data) => {
-    if (err) {
-      console.log(err);
-      return res.status(500).json({ error: true });
-    }
-    res.json(data);
-  });
+  User.findOne({'local.username': req.user, 'local.channels': req.params.name}).exec()
+      .then(user => {
+          if(user) {
+              return Message.find({ channel: req.params.name }).exec();
+          } else {
+              throw 'Not joined to channel.';
+          }
+      })
+      .then(messages => res.json(messages))
+    .then(null, error => {
+        res.status(401).json({error: error});
+    })
 });
 
 app.get('*', (req, res) => {

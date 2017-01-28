@@ -172,7 +172,7 @@ module.exports = function (io) {
                 .then((user) => {
                     user.local.channels.map((channel) => {
                         socket.join(channel);
-                        socket.emit(events.join, channel);
+                        //socket.emit(events.join, channel);
                     });
                 })
         }

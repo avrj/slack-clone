@@ -26,7 +26,7 @@ class App extends Component {
       channels: {},
       activeChannel: null,
       activeUser: null,
-      nick: null,
+      loggedUser: null,
       showDrawer: false,
       drawerDocked: false,
       connecting: true,
@@ -41,83 +41,150 @@ class App extends Component {
     this.client.on(events.connect, this._handleConnect);
     this.client.on(events.disconnect, this._handleDisconnect);
     this.client.on(events.error, this._handleError);
-
     this.client.on(events.online, this._handleOnline);
-
     this.client.on(events.offline, this._handleOffline);
-
     this.client.on(events.join, this._handleJoin);
-
     this.client.on(events.leave, this._handleLeave);
-
     this.client.on(events.msg, this._handleMsg);
-
     this.client.on(events.privateMsg, this._handlePrivateMsg);
-
     this.client.on(events.ownPrivateMsg, this._handleOwnPrivateMsg);
   }
 
   componentWillMount = () => {
+    this.setDrawerVisibilityByWindowWidth();
+  }
+
+  setDrawerVisibilityByWindowWidth = () => {
     const mql = window.matchMedia('(min-width: 800px)');
 
-    if (mql.matches) {
-      this.setState({
-        showDrawer: true,
-        drawerDocked: true,
-      });
-    }
-
-    mql.addListener(this.mediaQueryChanged);
+    mql.addListener(this.onWindowWidthChange);
 
     this.setState({
       mql,
+      showDrawer: mql.matches,
       drawerDocked: mql.matches,
     });
   }
 
   componentWillUnmount = () => {
-    this.state.mql.removeListener(this.mediaQueryChanged);
+    this.state.mql.removeListener(this.onWindowWidthChange);
   }
 
-  mediaQueryChanged = () => {
+  onWindowWidthChange = () => {
     this.setState({
-      showDrawer: true,
+      showDrawer: this.state.mql.matches,
       drawerDocked: this.state.mql.matches,
     });
   }
 
   _handleConnect = () => {
-      fetch('/users',
-          {
-              credentials: 'include',
-              method: 'GET',
-              headers: {
-                  Accept: 'application/json',
-                  'Content-Type': 'application/json',
-              },
-          })
-          .then(response => response.json())
-          .then((responseJson) => {
-              if (!localStorage.getItem('nick')) {
-                  localStorage.setItem('nick', this.props.location.state.username);
+    fetch('/users',
+      {
+        credentials: 'include',
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+      })
+            .then(response => response.json())
+            .then((responseJson) => {
+              if (!localStorage.getItem('loggedUser')) {
+                localStorage.setItem('loggedUser', this.props.location.state.username);
               }
 
-              const nick = localStorage.getItem('nick');
+              const loggedUser = localStorage.getItem('loggedUser');
 
-              const users = [];
+              const users = {};
 
-              for(let i = 0; i < responseJson.length; i++) {
-                users.push(responseJson[i].local);
+              for (let i = 0; i < responseJson.length; i++) {
+                users[responseJson[i].local.username] = { online: responseJson[i].local.online, messages: [] };
               }
 
-              this.setState({
-                  nick,
-                  users,
-                  connected: true,
-                  connecting: false,
-              });
-          })
-          .catch((error) => { alert('Error retrieving users') })
+              fetch('/user/channels',
+                {
+                  credentials: 'include',
+                  method: 'GET',
+                  headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                  },
+                })
+                    .then(response => response.json())
+                    .then((responseJson) => {
+                      const channels = {};
+
+                      for (let i = 0; i < responseJson.local.channels.length; i++) {
+                        channels[responseJson.local.channels[i]] = {
+                          messages: [],
+                          earlierMessagesLoadedBefore: false,
+                        };
+                      }
+
+                      const activeChannel = localStorage.getItem('activeChannel') ? localStorage.getItem('activeChannel') : Object.keys(channels)[0];
+
+                      if (localStorage.getItem('activeUser')) {
+                        this.setState({
+                          activeChannel: null,
+                          activeUser: localStorage.getItem('activeUser'),
+                          loggedUser,
+                          users,
+                          connected: true,
+                          connecting: false,
+                          channels,
+                        });
+                      } else {
+                        fetch(`/channel/${localStorage.getItem('activeChannel')}/messages`,
+                          {
+                            credentials: 'include',
+                            method: 'GET',
+                            headers: {
+                              Accept: 'application/json',
+                              'Content-Type': 'application/json',
+                            },
+                          })
+                                .then(response => response.json())
+                                .then((responseJson) => {
+                                  const messages = [];
+
+                                  for (let i = 0; i < responseJson.length; i++) {
+                                    messages.push({
+                                      date: responseJson[i].timestamp,
+                                      user: responseJson[i].user,
+                                      msg: responseJson[i].text,
+                                    });
+                                  }
+
+                                    // const channels = JSON.parse(JSON.stringify(this.state.channels));
+
+                                  channels[localStorage.getItem('activeChannel')] = {
+                                    hasNewMessages: false,
+                                    earlierMessagesLoadedBefore: true,
+                                    messages: messages.concat(channels[localStorage.getItem('activeChannel')].messages),
+                                  };
+
+                                  this.setState({
+                                    activeChannel: localStorage.getItem('activeChannel'),
+                                    activeUser: null,
+                                    loggedUser,
+                                    users,
+                                    connected: true,
+                                    connecting: false,
+                                    channels,
+                                  });
+                                })
+                                .catch((error) => {
+                                  alert(`Error retrieving channels messages: ${error}`);
+                                });
+                      }
+                    })
+                    .catch((error) => {
+                      alert('Error retrieving user\'s channels');
+                    });
+            })
+            .catch((error) => {
+              alert('Error retrieving users: ' + error);
+            });
   }
 
   _handleDisconnect = () => {
@@ -138,34 +205,60 @@ class App extends Component {
   }
 
   _handleJoin = (channel) => {
-    const channels = JSON.parse(JSON.stringify(this.state.channels));
+    fetch(`/channel/${channel}/messages`,
+      {
+        credentials: 'include',
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+      })
+            .then(response => response.json())
+            .then((responseJson) => {
+              const messages = [];
 
-    channels[channel] = {
-      messages: [],
-      users: [],
-    };
+              for (let i = 0; i < responseJson.length; i++) {
+                messages.push({
+                  date: responseJson[i].timestamp,
+                  user: responseJson[i].user,
+                  msg: responseJson[i].text,
+                });
+              }
 
-    this.setState({
-      channels,
-      activeChannel: channel,
-      activeUser: null,
-    });
+              const channels = JSON.parse(JSON.stringify(this.state.channels));
 
-    localStorage.setItem('activeChannel', channel);
-    localStorage.removeItem('activeUser');
+              channels[channel] = {
+                hasNewMessages: false,
+                earlierMessagesLoadedBefore: true,
+                messages,
+              };
+
+              this.setState({
+                channels,
+                activeChannel: channel,
+                activeUser: null,
+              });
+
+              localStorage.setItem('activeChannel', channel);
+              localStorage.removeItem('activeUser');
+            })
+            .catch((error) => {
+              alert(`Error retrieving channels messages: ${error}`);
+            });
   };
 
-  _handleMsg = (data) => {
-    if (!this.state.channels[data.room]) return;
+  _handleMsg = (msg) => {
+    if (!this.state.channels[msg.room]) return;
 
     const channels = JSON.parse(JSON.stringify(this.state.channels));
 
-    const messages = channels[data.room].messages;
+    const messages = channels[msg.room].messages;
 
-    messages.push(data);
+    messages.push(msg);
 
-    if (data.room !== this.state.activeChannel && data.user !== this.state.nick) {
-      channels[data.room].hasNewMessages = true;
+    if (msg.room !== this.state.activeChannel && msg.user !== this.state.loggedUser) {
+      channels[msg.room].hasNewMessages = true;
     }
 
     this.setState({ channels });
@@ -228,7 +321,7 @@ class App extends Component {
       const messages = users[data.to].messages;
 
       messages.push({
-        user: this.state.nick,
+        user: this.state.loggedUser,
         msg: data.msg,
       });
 
@@ -236,7 +329,7 @@ class App extends Component {
         users,
       });
     } else {
-      users[data.to] = { messages: [{ user: this.state.nick, msg: data.msg }] };
+      users[data.to] = { messages: [{ user: this.state.loggedUser, msg: data.msg }] };
       this.setState({
         users,
       });
@@ -269,7 +362,7 @@ class App extends Component {
     if (channel == this.state.activeChannel) {
       this.setState({
         activeChannel: channelNames.length > 0 ? channelNames[0] : null,
-        activeUser: channelNames.length === 0 ? this.state.nick : null,
+        activeUser: channelNames.length === 0 ? this.state.loggedUser : null,
       });
 
       if (channelNames.length > 0) {
@@ -307,24 +400,66 @@ class App extends Component {
   };
 
   setActiveChannel = (channel) => {
-        /* set hasNewMessages false on this channel */
-    if (this.state.channels[channel]) {
+    if (this.state.channels[channel].earlierMessagesLoadedBefore) {
       const channels = JSON.parse(JSON.stringify(this.state.channels));
 
       channels[channel].hasNewMessages = false;
 
       this.setState({ channels });
+
+
+      this.setState({
+        activeChannel: channel,
+        activeUser: null,
+        showDrawer: this.state.mql.matches,
+      });
+
+      localStorage.setItem('activeChannel', channel);
+      localStorage.removeItem('activeUser');
+    } else {
+      fetch(`/channel/${channel}/messages`,
+        {
+          credentials: 'include',
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+        })
+                .then(response => response.json())
+                .then((responseJson) => {
+                  const messages = [];
+
+                  for (let i = 0; i < responseJson.length; i++) {
+                    messages.push({
+                      date: responseJson[i].timestamp,
+                      user: responseJson[i].user,
+                      msg: responseJson[i].text,
+                    });
+                  }
+
+                  const channels = JSON.parse(JSON.stringify(this.state.channels));
+
+                  channels[channel] = {
+                    hasNewMessages: false,
+                    earlierMessagesLoadedBefore: true,
+                    messages: messages.concat(this.state.channels[channel].messages),
+                  };
+
+                  this.setState({
+                    channels,
+                    activeChannel: channel,
+                    activeUser: null,
+                    showDrawer: this.state.mql.matches,
+                  });
+
+                  localStorage.setItem('activeChannel', channel);
+                  localStorage.removeItem('activeUser');
+                })
+                .catch((error) => {
+                  alert('Error retrieving channels messages');
+                });
     }
-
-
-    this.setState({
-      activeChannel: channel,
-      activeUser: null,
-      showDrawer: this.state.mql.matches,
-    });
-
-    localStorage.setItem('activeChannel', channel);
-    localStorage.removeItem('activeUser');
   }
 
   setActiveUser = (user) => {
@@ -346,7 +481,7 @@ class App extends Component {
   signOut = () => {
     this.client.disconnect();
 
-    const itemsToRemove = ['activeChannel', 'activeUser', 'nick'];
+    const itemsToRemove = ['activeChannel', 'activeUser', 'loggedUser'];
 
     itemsToRemove.map(item => localStorage.removeItem(item));
 
@@ -380,7 +515,7 @@ class App extends Component {
   }
 
   renderChat = () => {
-    const { nick, activeChannel, activeUser } = this.state;
+    const { loggedUser, activeChannel, activeUser } = this.state;
 
     if (this.state.connecting) {
       return (<Dialog
@@ -401,7 +536,7 @@ class App extends Component {
           open={this.state.showDrawer}
           onRequestChange={showDrawer => this.setState({ showDrawer })}
         >
-          <UserProfile nick={nick} />
+          <UserProfile loggedUser={loggedUser} />
           <ChannelList
             showJoinChannelDialog={() => this.setState({ showJoinChannelDialog: true })}
             activeChannel={activeChannel}
@@ -410,7 +545,7 @@ class App extends Component {
           />
 
           <UserList
-            nick={nick}
+            loggedUser={loggedUser}
             activeUser={activeUser}
             setActiveUser={user => this.setActiveUser(user)}
             users={this.state.users}
@@ -419,16 +554,16 @@ class App extends Component {
 
         <div style={{ height: '90%' }}>
           <AppBar
-            title={activeChannel ? `# ${activeChannel}` : activeUser + (activeUser === nick && ' (you)')}
+            title={activeChannel ? `# ${activeChannel}` : `${activeUser}${activeUser === loggedUser ? ' (you)' : ''}`}
             iconElementRight={<IconMenu
               iconButtonElement={
                 <IconButton><MoreVertIcon /></IconButton>
-                                }
+                            }
               targetOrigin={{ horizontal: 'right', vertical: 'top' }}
               anchorOrigin={{ horizontal: 'right', vertical: 'top' }}
             >
               {activeChannel &&
-              <MenuItem primaryText={`Leave #${activeChannel}`} onTouchTap={this.leaveChannel} />}
+                <MenuItem primaryText={`Leave #${activeChannel}`} onTouchTap={this.leaveChannel} />}
               <MenuItem primaryText="Sign out" onTouchTap={this.signOut} />
             </IconMenu>}
             onLeftIconButtonTouchTap={() => {
@@ -452,7 +587,7 @@ class App extends Component {
         modal
         open
       >You will be reconnected
-            automatically if the chat server responds.</Dialog>);
+                automatically if the chat server responds.</Dialog>);
   }
 
 
