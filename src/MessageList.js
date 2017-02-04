@@ -1,19 +1,16 @@
 import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
 import moment from 'moment';
 
 moment.locale('fi');
 
 class MessageList extends Component {
   componentWillUpdate = () => {
-    const node = ReactDOM.findDOMNode(this);
-    this.shouldScrollBottom = node.scrollTop + node.offsetHeight === node.scrollHeight;
+    this.shouldScrollBottom = this.node.scrollTop + this.node.offsetHeight === this.node.scrollHeight;
   }
 
   componentDidUpdate = () => {
     if (this.shouldScrollBottom) {
-      const node = ReactDOM.findDOMNode(this);
-      node.scrollTop = node.scrollHeight;
+      this.node.scrollTop = this.node.scrollHeight;
     }
   }
 
@@ -24,19 +21,21 @@ class MessageList extends Component {
       const dateFormat = 'LLL';
 
       if (messages.length > 0) {
-        return (messages.map((message, i) => <p key={i}><strong>{message.user}</strong> {moment(message.date).format(dateFormat)}<br /> {message.msg}</p>));
+        return (messages.map(message => <p key={message.date}><strong>{message.user}</strong> {moment(message.date).format(dateFormat)}<br /> {message.msg}</p>));
       }
       return (<p>No messages yet.</p>);
     };
 
-    return (
-      <div className="MessageList">{renderMessages()}</div>
-    );
+    return (<div style={{ position: 'absolute', top: '60px', bottom: '20px', paddingLeft: '10' }} ref={(node) => { this.node = node; }}>{renderMessages()}</div>);
   }
 }
 
 MessageList.propTypes = {
   messages: React.PropTypes.array,
+};
+
+MessageList.defaultProps = {
+  messages: [],
 };
 
 export default MessageList;

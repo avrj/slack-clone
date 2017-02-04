@@ -4,6 +4,8 @@ import Chat from './Chat';
 import Login from './Login';
 import Register from './Register';
 import { Router, Route, IndexRoute, browserHistory } from 'react-router';
+import Layout from './Layout';
+
 class AppRouter extends Component {
   render() {
     const routes = (<Route path="/" component={AppContainer}>

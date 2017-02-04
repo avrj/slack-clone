@@ -6,14 +6,14 @@ class UserList extends Component {
     const renderListItems = () => {
       const { users } = this.props;
 
-      return Object.keys(users).map((user, i) => {
+      return Object.keys(users).map((user) => {
         const you = user === this.props.loggedUser ? ' (you)' : '';
 
         return (<UserListItem
           active={this.props.activeUser === user}
           online={users[user].online}
           hasNewMessages={users[user].hasNewMessages}
-          key={i}
+          key={user}
           onTouchTap={() => this.props.setActiveUser(user)}
           user={user + you}
         />);
@@ -38,6 +38,10 @@ UserList.propTypes = {
   loggedUser: React.PropTypes.string.isRequired,
   users: React.PropTypes.object.isRequired,
   setActiveUser: React.PropTypes.func.isRequired,
+};
+
+UserList.defaultProps = {
+  activeUser: null,
 };
 
 export default UserList;

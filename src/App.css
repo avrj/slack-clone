@@ -1,15 +1,4 @@
-html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-}
-
-#root {
-    height: 100%;
-}
-
 .App {
-    height: 100%;
     font-family: 'Roboto', sans-serif;
 }
 

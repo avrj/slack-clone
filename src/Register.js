@@ -20,7 +20,7 @@ class Register extends Component {
 
     this.setState({ registerError: false });
 
-    fetch('/register',
+    fetch('/api/register',
       {
         credentials: 'include',
         method: 'POST',
@@ -34,7 +34,7 @@ class Register extends Component {
         }),
       })
           .then(response => response.json())
-          .then((responseJson) => {
+          .then(() => {
             browserHistory.push({
               pathname: '/',
               state: {
@@ -42,7 +42,7 @@ class Register extends Component {
               },
             });
           })
-          .catch((error) => {
+          .catch(() => {
             this.setState({ registerError: true });
           });
   }

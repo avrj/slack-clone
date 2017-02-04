@@ -1,10 +1,9 @@
 const passportSocketIo = require('passport.socketio');
+const debug = require('debug')('chat');
+
 const events = require('./events');
 
-const User = require('./models/User');
-const Channel = require('./models/Channel');
-const Message = require('./models/Message');
-
+const models = require('./models');
 
 module.exports = function (io) {
     io.sockets.on('connection', (socket) => {
@@ -15,12 +14,12 @@ module.exports = function (io) {
         if (connectedClientsForUser.length <= 1) {
             socket.broadcast.emit(events.online, socket.request.user);
 
-            User.findOneAndUpdate(
+            models.User.findOneAndUpdate(
                 {'local.username': socket.request.user},
                 {'local.online': true}).exec()
-                .then(() => console.log(`${socket.request.user} is now online with client ${socket.id}`));
+                .then(() => debug(`${socket.request.user} is now online with client ${socket.id}`));
         } else {
-            console.log(`${socket.request.user} is now connected with new client ${socket.id}`);
+            debug(`${socket.request.user} is now connected with new client ${socket.id}`);
         }
 
         socket.on(events.join, handleJoin);
@@ -29,78 +28,91 @@ module.exports = function (io) {
         socket.on(events.privateMsg, handlePrivateMsg);
         socket.on(events.disconnect, handleDisconnect);
 
-        function handleJoin(room) {
-            Channel.findOne({name: room}, (err, channel) => {
+        function handleJoin(channelToJoin) {
+            if (!channelToJoin) {
+                debug('error joining channel: no channel specified');
+                return;
+            }
+
+            models.Channel.findOne({name: channelToJoin}, (err, channel) => {
                 if (channel) {
-                    User.findOne({'local.username': socket.request.user, 'local.channels': room}).exec()
-                        .then(user => {
+                    models.User.findOne({'local.username': socket.request.user, 'local.channels': channelToJoin}).exec()
+                        .then((user) => {
                             if (user) {
-                                console.log(`${socket.request.user} is already joined to ${room}`);
+                                debug(`error joining channel: ${socket.request.user} is already joined to ${channelToJoin}`);
                             } else {
                                 connectedClientsForUser.forEach((socket1) => {
-                                    socket1.join(room);
-                                    socket1.emit(events.join, room);
+                                    socket1.join(channelToJoin);
+                                    socket1.emit(events.join, channelToJoin);
                                 });
 
-                                return User.findOneAndUpdate(
+                                return models.User.findOneAndUpdate(
                                     {'local.username': socket.request.user},
-                                    {$push: {'local.channels': room}}).exec()
+                                    {$push: {'local.channels': channelToJoin}}).exec();
                             }
                         })
                         .then(() => {
-                            console.log(`${socket.request.user} (${socket.id}) joined room ${room}`);
+                            debug(`${socket.request.user} (${socket.id}) joined channel ${channelToJoin}`);
                         });
                 } else {
                     connectedClientsForUser.forEach((socket1) => {
-                        socket1.join(room);
-                        socket1.emit(events.join, room);
+                        socket1.join(channelToJoin);
+                        socket1.emit(events.join, channelToJoin);
                     });
 
-                    const newChannel = new Channel();
+                    const newChannel = new models.Channel();
 
-                    newChannel.name = room;
+                    newChannel.name = channelToJoin;
 
                     newChannel.save()
-                        .then(() => {
-                            return User.findOneAndUpdate(
-                                {'local.username': socket.request.user},
-                                {$push: {'local.channels': room}}).exec()
-                        })
-                        .then(() => console.log(`${socket.request.user} (${socket.id}) joined room ${room}`));
+                        .then(() => models.User.findOneAndUpdate(
+                            {'local.username': socket.request.user},
+                            {$push: {'local.channels': channelToJoin}}).exec())
+                        .then(() => debug(`${socket.request.user} (${socket.id}) joined channel ${channelToJoin}`));
                 }
             });
         }
 
-        function handleLeave(room) {
-            User.findOne({'local.username': socket.request.user, 'local.channels': room}).exec()
-                .then(user => {
+        function handleLeave(channel) {
+            if (!channel) {
+                debug('error leaving channel: no channel specified');
+                return;
+            }
+
+
+            models.User.findOne({'local.username': socket.request.user, 'local.channels': channel}).exec()
+                .then((user) => {
                     if (user) {
                         connectedClientsForUser.forEach((socket1) => {
-                            socket1.leave(room);
-                            socket1.emit(events.leave, room);
+                            socket1.leave(channel);
+                            socket1.emit(events.leave, channel);
                         });
 
-                        return User.findOneAndUpdate(
+                        return models.User.findOneAndUpdate(
                             {'local.username': socket.request.user},
-                            {$pull: {'local.channels': room}})
-                    } else {
-                        throw (`${socket.request.user} is not joined to ${room}`);
+                            {$pull: {'local.channels': channel}});
                     }
+                    throw (`${socket.request.user} is not joined to ${channel}`);
                 })
                 .then(() => {
-                    console.log(`${socket.request.user} (${socket.id}) leaved room ${room}`);
+                    debug(`${socket.request.user} (${socket.id}) leaved channel ${channel}`);
                 })
-                .then(null, (error) => console.log(error));
+                .then(null, error => debug(`error leaving channel: ${error}`));
         }
 
         function handleMsg(data) {
             if (!data.room) {
-                console.log('no room selected');
+                debug('error sending message: no channel selected');
                 return;
             }
 
             if (!socket.rooms[data.room]) {
-                console.log('not joined to room');
+                debug('error sending message: not joined to channel');
+                return;
+            }
+
+            if (!data.msg) {
+                debug('error sending message: no message specified');
                 return;
             }
 
@@ -115,21 +127,31 @@ module.exports = function (io) {
             socket.broadcast.to(data.room).emit(events.msg, msgData);
             socket.emit(events.msg, msgData);
 
-            const newMessage = new Message();
+            const newMessage = new models.Message();
 
             newMessage.user = socket.request.user;
             newMessage.text = data.msg;
             newMessage.channel = data.room;
 
             newMessage.save()
-                .then(() => console.log(`${socket.request.user} (${socket.id}) sent message ${data.msg} to channel ${data.room}`))
-                .then(null, (error) => console.log(error));
+                .then(() => debug(`${socket.request.user} (${socket.id}) sent message ${data.msg} to channel ${data.room}`))
+                .then(null, error => debug(`error sending message: ${error}`));
         }
 
         function handlePrivateMsg(data) {
-            if (!data.to) return;
+            if (!data.msg) {
+                debug('error sending private message: no receiver specified');
+                return;
+            }
 
-            console.log(`${socket.request.user} (${socket.id}) sent private message ${data.msg} to ${data.to}`);
+
+            if (!data.msg) {
+                debug('error sending private message: no message specified');
+                return;
+            }
+
+
+            debug(`${socket.request.user} (${socket.id}) sent private message ${data.msg} to ${data.to}`);
 
             /* send private msg to all clients of receiver if receiver is not the sender */
             if (data.to !== socket.request.user) {
@@ -151,30 +173,30 @@ module.exports = function (io) {
         }
 
         function handleDisconnect() {
-            if (connectedClientsForUser.length < 1) {
-                User.findOneAndUpdate(
+            if (connectedClientsForUser.length <= 1) {
+                models.User.findOneAndUpdate(
                     {'local.username': socket.request.user},
                     {'local.online': false}).exec()
                     .then(() => {
-                        console.log(`${socket.request.user} (${socket.id}) is now offline`);
+                        debug(`${socket.request.user} (${socket.id}) is now offline`);
 
                         socket.broadcast.emit(events.offline, socket.request.user);
-                    })
+                    });
             } else {
-                console.log(`${socket.request.user} (${socket.id}) one of clients has disconnected`);
+                debug(`${socket.request.user} (${socket.id}) one of clients has disconnected`);
             }
         }
 
         function joinSavedChannels(nick, socket) {
-            User.findOne(
+            models.User.findOne(
                 {'local.username': socket.request.user},
                 {'local.channels': 1}).exec()
                 .then((user) => {
                     user.local.channels.map((channel) => {
                         socket.join(channel);
-                        //socket.emit(events.join, channel);
+                        // socket.emit(events.join, channel);
                     });
-                })
+                });
         }
     });
 };

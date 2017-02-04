@@ -25,10 +25,8 @@ class ChatInput extends Component {
 
   render() {
     return (
-      <div >
-        <form
-          onSubmit={this.sendMsg}
-        >
+      <div style={{ position: 'fixed', bottom: '0' }}>
+        <form onSubmit={this.sendMsg}>
           <input
             style={{ width: '100vw' }}
             ref={(input) => {
@@ -47,7 +45,6 @@ class ChatInput extends Component {
 
 ChatInput.propTypes = {
   sendMsg: React.PropTypes.func.isRequired,
-  focus: React.PropTypes.bool,
 };
 
 export default ChatInput;

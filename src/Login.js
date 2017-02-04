@@ -22,7 +22,7 @@ class Login extends Component {
     if (this.state.username.length >= 1 && this.state.password.length >= 1) this.authenticate();
   }
 
-  authenticate = () => fetch('/authenticate',
+  authenticate = () => fetch('/api/authenticate',
     {
       credentials: 'include',
       method: 'POST',
@@ -44,7 +44,7 @@ class Login extends Component {
             },
           });
         })
-        .catch((error) => {
+        .catch(() => {
           this.setState({ signInError: true });
         })
 
