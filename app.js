@@ -9,17 +9,18 @@ const passportSocketIo = require('passport.socketio');
 const session = require('express-session');
 const MongoStore = require('connect-mongo')(session);
 const passport = require('passport');
-const passportConfig = require('./config/passport')(passport);
+
+const config = require('./config/');
+
+const passportConfig = require('./config/passport')(config, passport);
 const compression = require('compression');
 const path = require('path');
 
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
-
+/*
 const cors = require('cors');
 
-app.use(cors());
-
-const config = require('./config/');
+app.use(cors());*/
 
 if (process.env.NODE_ENV == 'test') {
     const mockgoose = require('mockgoose');
@@ -112,7 +113,7 @@ io.use(passportSocketIo.authorize({
     },     // *optional* callback on fail/error
 }));
 
-const socketHandler = require('./socket.js')(io);
+const socketHandler = require('./socket.js')(config, io);
 
 const port = process.env.PORT || 3000;
 
