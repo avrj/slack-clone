@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "postinstall": "webpack -p",
+    "heroku-postbuild": "webpack -p",
     "start": "npm-run-all --parallel server watch:dev",
     "server": "DEBUG=node-express-sequelize:server node app.js",
     "watch:dev": "webpack-dev-server",
