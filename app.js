@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 const logger = require('morgan');
 const express = require('express');
 const app = express();
+const helmet = require('helmet');
+app.use(helmet());
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const bodyParser = require('body-parser');
@@ -10,6 +12,12 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo')(session);
 const passport = require('passport');
 
+if (process.env.NODE_ENV == 'production') {
+    const forceSSL = require('express-force-ssl');
+
+    app.use(forceSSL);
+}
+
 const config = require('./config/');
 
 const passportConfig = require('./config/passport')(config, passport);
@@ -17,10 +25,6 @@ const compression = require('compression');
 const path = require('path');
 
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
-/*
-const cors = require('cors');
-
-app.use(cors());*/
 
 if (process.env.NODE_ENV == 'test') {
     const mockgoose = require('mockgoose');
