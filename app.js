@@ -13,6 +13,10 @@ const passportConfig = require('./config/passport')(passport);
 const compression = require('compression');
 const path = require('path');
 
+const cors = require('cors');
+
+app.use(cors());
+
 const config = require('./config/');
 
 if (process.env.NODE_ENV == 'test') {
