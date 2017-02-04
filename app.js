@@ -79,11 +79,11 @@ if (process.env.NODE_ENV == 'development') {
 } else {
     console.log('Serving production bundle')
 
-    app.get('/js/bundle.js', (req, res) => {
-        res.sendFile(path.join(__dirname, 'public', 'js', 'bundle.js'));
+    app.get('bundle.js', (req, res) => {
+        res.sendFile(path.join(__dirname, 'dist', 'bundle.js'));
     });
-    app.get('/js/bundle.js.map', (req, res) => {
-        res.sendFile(path.join(__dirname, 'public', 'js', 'bundle.js.map'));
+    app.get('bundle.js.map', (req, res) => {
+        res.sendFile(path.join(__dirname, 'dist', 'bundle.js.map'));
     });
 }
 
