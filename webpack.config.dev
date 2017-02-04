@@ -1,16 +1,14 @@
-
 var path = require('path');
 var webpack = require('webpack');
 
 module.exports = {
   devtool: 'inline-source-map',
   entry: [
-    'babel-polyfill',
     'webpack-hot-middleware/client',
-    './src/index'
+              path.join(__dirname, 'src', 'index.js'),
   ],
   output: {
-    path: path.resolve(__dirname, './static/dist'),
+     path: path.join(__dirname, 'public', 'js'),
     filename: 'bundle.js',
     publicPath: '/js/'
   },
@@ -25,32 +23,42 @@ module.exports = {
   ],
   module: {
     loaders: [
-      {
-        test: /\.js$/,
-        loader: 'babel',
-        query: {
-        presets: ['react'],
-          plugins: [
-            [
-              'react-transform', {
-                transforms: [{
-                  transform: 'react-transform-hmr',
-                  imports: ['react'],
-                  locals: ['module']
-                }, {
-                  transform: 'react-transform-catch-errors',
-                  imports: ['react', 'redbox-react']
-                }]
-              }
-            ]
-          ]
-        },
-        include: [path.resolve(__dirname, 'src')]
-      },
-      {
-        test: /\.css?$/,
-        loaders: ['style', 'raw']
-      }
+          {
+                test: /\.js$/,
+                loaders: ['react-hot', `babel?${JSON.stringify({
+                    cacheDirectory: true,
+                    presets: ['es2015', 'stage-0', 'react'],
+                })}`],
+                exclude: /node_modules/,
+            },
+            {
+                test: /\.css$/,
+                loader: 'style-loader!css-loader',
+            },
+            {
+                test: /\.png$/,
+                loader: 'url-loader?limit=100000',
+            },
+            {
+                test: /\.jpg$/,
+                loader: 'file-loader',
+            },
+            {
+                test: /\.(woff|woff2)(\?v=\d+\.\d+\.\d+)?$/,
+                loader: 'url?limit=10000&mimetype=application/font-woff',
+            },
+            {
+                test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
+                loader: 'url?limit=10000&mimetype=application/octet-stream',
+            },
+            {
+                test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
+                loader: 'file',
+            },
+            {
+                test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+                loader: 'url?limit=10000&mimetype=image/svg+xml',
+            },
     ]
   }
 };
