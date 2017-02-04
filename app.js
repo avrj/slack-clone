@@ -12,12 +12,6 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo')(session);
 const passport = require('passport');
 
-if (process.env.NODE_ENV == 'production') {
-    const forceSSL = require('express-force-ssl');
-
-    app.use(forceSSL);
-}
-
 const config = require('./config/');
 
 const passportConfig = require('./config/passport')(config, passport);
