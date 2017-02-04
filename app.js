@@ -13,6 +13,8 @@ const passportConfig = require('./config/passport')(passport);
 const compression = require('compression');
 const path = require('path');
 
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+
 const cors = require('cors');
 
 app.use(cors());
@@ -42,7 +44,7 @@ app.use(session({
     key: 'express.sid',
     store: sessionStore,
     secret: process.env.SESSION_SECRET || config.session.secret,
-    cookie: { httpOnly: false }
+    cookie: {httpOnly: false}
 }));
 
 app.use(passport.initialize());
@@ -57,9 +59,31 @@ passport.deserializeUser((username, done) => {
 });
 
 
-app.use(express.static(path.join(__dirname, 'public')));
+//app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', require('./routes'));
+
+if (process.env.NODE_ENV == 'development') {
+    console.log('Webpack dev middleware enabled');
+
+    const webpack = require('webpack');
+    const webpackConfig = require('./webpack.config.dev')
+    const compiler = webpack(webpackConfig);
+
+    app.use(require('webpack-dev-middleware')(compiler, {
+        publicPath: webpackConfig.output.publicPath
+    }));
+
+    app.use(require('webpack-hot-middleware')(compiler));
+} else {
+    app.get('/js/bundle.js', (req, res) => {
+        res.sendFile(path.join(__dirname, 'public', 'js', 'bundle.js'));
+    });
+}
+
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 io.use(passportSocketIo.authorize({
     key: 'express.sid',
@@ -92,21 +116,21 @@ if (process.env.NODE_ENV !== 'test') {
         console.log(`listening on *:${port}`);
     });
 
-    if (process.env.NODE_ENV !== 'production') {
-        const webpack = require('webpack');
-        const WebpackDevServer = require('webpack-dev-server');
-        const webpackConfig = require('./webpack.config.js');
+    /*if (process.env.NODE_ENV !== 'production') {
+     const webpack = require('webpack');
+     const WebpackDevServer = require('webpack-dev-server');
+     const webpackConfig = require('./webpack.config.js');
 
-        new WebpackDevServer(webpack(webpackConfig), {
-            historyApiFallback: true,
-            hot: true,
-            publicPath: webpackConfig.output.publicPath,
-            proxy: {'*': 'http://0.0.0.0:3000'},
-        }).listen(8080, 'localhost', (err) => {
-            if (err) console.log(err);
-            console.log('Webpack Dev Server listening at 8080');
-        });
-    }
+     new WebpackDevServer(webpack(webpackConfig), {
+     historyApiFallback: true,
+     hot: true,
+     publicPath: webpackConfig.output.publicPath,
+     proxy: {'*': 'http://0.0.0.0:3000'},
+     }).listen(8080, 'localhost', (err) => {
+     if (err) console.log(err);
+     console.log('Webpack Dev Server listening at 8080');
+     });
+     }*/
 }
 
 module.exports = {
