@@ -67,7 +67,7 @@ if (process.env.NODE_ENV == 'development') {
     console.log('Webpack dev middleware enabled');
 
     const webpack = require('webpack');
-    const webpackConfig = require('./webpack.config.dev')
+    const webpackConfig = require('./webpack.config.dev.js')
     const compiler = webpack(webpackConfig);
 
     app.use(require('webpack-dev-middleware')(compiler, {
@@ -76,8 +76,13 @@ if (process.env.NODE_ENV == 'development') {
 
     app.use(require('webpack-hot-middleware')(compiler));
 } else {
+    console.log('Serving production bundle')
+
     app.get('/js/bundle.js', (req, res) => {
         res.sendFile(path.join(__dirname, 'public', 'js', 'bundle.js'));
+    });
+    app.get('/js/bundle.js.map', (req, res) => {
+        res.sendFile(path.join(__dirname, 'public', 'js', 'bundle.js.map'));
     });
 }
 
