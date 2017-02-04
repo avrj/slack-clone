@@ -64,7 +64,7 @@
     "style-loader": "^0.13.1",
     "superagent": "^3.4.0",
     "url-loader": "^0.5.7",
-    "webpack": "^1.14.0",
+    "webpack": "^1.14.0"
   },
   "devDependencies": {
     "babel-eslint": "^7.1.1",
