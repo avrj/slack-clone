@@ -35,12 +35,12 @@ class Register extends Component {
       })
           .then(response => response.json())
           .then(() => {
-            browserHistory.push({
-              pathname: '/',
-              state: {
-                message: 'You may now sign in with your credentials.',
-              },
-            });
+              browserHistory.push({
+                  pathname: '/chat',
+                  state: {
+                      username: this.state.username,
+                  },
+              });
           })
           .catch(() => {
             this.setState({ registerError: true });
