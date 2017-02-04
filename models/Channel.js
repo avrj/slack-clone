@@ -10,4 +10,11 @@ const channelSchema = mongoose.Schema({
   },
 });
 
+
+channelSchema.pre('save', function (next) {
+    this.name = this.name.toLowerCase();
+
+    next();
+});
+
 module.exports = mongoose.model('Channel', channelSchema);

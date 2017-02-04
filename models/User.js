@@ -26,6 +26,12 @@ const UserSchema = mongoose.Schema({
   },
 });
 
+UserSchema.pre('save', function (next) {
+    this.username = this.username.toLowerCase();
+
+    next();
+});
+
 UserSchema.methods.generateHash = function (password) {
   return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
 };

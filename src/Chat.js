@@ -336,6 +336,8 @@ class App extends Component {
     };
 
     join = (channelToJoin) => {
+        channelToJoin = channelToJoin.toLowerCase();
+
         if (this.state.channels[channelToJoin]) {
             this.setState({activeChannel: channelToJoin, activeUser: null});
         } else {
@@ -353,15 +355,12 @@ class App extends Component {
     }
 
     _handleLeave = (channel) => {
+
         const channels = JSON.parse(JSON.stringify(this.state.channels));
 
         delete channels[channel];
 
         const channelNames = Object.keys(channels);
-
-        this.setState({
-            channels,
-        });
 
         if (channel == this.state.activeChannel) {
             this.setState({
@@ -375,6 +374,10 @@ class App extends Component {
                 localStorage.removeItem(this.persistentActiveChannelIdentifier);
             }
         }
+
+        this.setState({
+            channels,
+        });
     }
 
     sendMsg = (msg) => {

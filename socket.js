@@ -7,6 +7,8 @@ const models = require('./models');
 
 module.exports = function (config, io) {
     io.sockets.on('connection', (socket) => {
+        socket.request.user = socket.request.user.toLowerCase();
+
         joinSavedChannels(socket.request.user, socket);
 
         const connectedClientsForUser = passportSocketIo.filterSocketsByUser(io, user => user === socket.request.user);
@@ -33,6 +35,8 @@ module.exports = function (config, io) {
                 debug('error joining channel: no channel specified');
                 return;
             }
+
+            channelToJoin = channelToJoin.toLowerCase();
 
             models.Channel.findOne({name: channelToJoin}, (err, channel) => {
                 if (channel) {
@@ -86,6 +90,8 @@ module.exports = function (config, io) {
                 return;
             }
 
+            channel = channel.toLowerCase();
+
 
             models.User.findOne({'local.username': socket.request.user, 'local.channels': channel}).exec()
                 .then((user) => {
@@ -123,6 +129,7 @@ module.exports = function (config, io) {
                 return;
             }
 
+            data.room = data.room.toLowerCase();
 
             const msgData = {
                 date: Date.now(),
@@ -146,7 +153,7 @@ module.exports = function (config, io) {
         }
 
         function handlePrivateMsg(data) {
-            if (!data.msg) {
+            if (!data.to) {
                 debug('error sending private message: no receiver specified');
                 return;
             }
@@ -157,6 +164,7 @@ module.exports = function (config, io) {
                 return;
             }
 
+            data.to = data.to.toLowerCase();
 
             debug(`${socket.request.user} (${socket.id}) sent private message ${data.msg} to ${data.to}`);
 

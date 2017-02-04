@@ -10,7 +10,7 @@ module.exports = function (config, passport) {
     passReqToCallback: true,
   },
         (req, username, password, done) => {
-          User.findOne({ 'local.username': username }, (err, user) => {
+          User.findOne({ 'local.username': username.toLowerCase() }, (err, user) => {
             if (err) {
               return done(err);
             }
@@ -19,9 +19,9 @@ module.exports = function (config, passport) {
             }
             const newUser = new User();
 
-            newUser.local.username = username;
+            newUser.local.username = username.toLowerCase();
             newUser.local.password = newUser.generateHash(password);
-            newUser.local.channels = [config.defaultChannel];
+            newUser.local.channels = [config.defaultChannel.toLowerCase()];
             newUser.save((err, user) => {
               if (err) {
                 throw err;
@@ -37,7 +37,7 @@ module.exports = function (config, passport) {
     passReqToCallback: true,
   },
         (req, username, password, done) => {
-          User.findOne({ 'local.username': username }, (err, user) => {
+          User.findOne({ 'local.username': username.toLowerCase() }, (err, user) => {
             if (err) {
               return done(err);
             }
