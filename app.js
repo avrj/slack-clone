@@ -35,7 +35,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 const sessionStore = new MongoStore({mongooseConnection: mongoose.connection});
 
 app.use(session({
-    key: process.env.SESSION_KEY || config.session.key,
+    key: 'express.sid',
     store: sessionStore,
     secret: process.env.SESSION_SECRET || config.session.secret,
 }));
@@ -57,7 +57,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', require('./routes'));
 
 io.use(passportSocketIo.authorize({
-    key: config.session.key,
+    key: 'express.sid',
     secret: config.session.secret,
     store: sessionStore,
     success: (data, accept) => {
