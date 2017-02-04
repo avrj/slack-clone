@@ -42,6 +42,7 @@ app.use(session({
     key: 'express.sid',
     store: sessionStore,
     secret: process.env.SESSION_SECRET || config.session.secret,
+    cookie: { httpOnly: false }
 }));
 
 app.use(passport.initialize());
