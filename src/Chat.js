@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 
 import io from 'socket.io-client';
 import { browserHistory } from 'react-router';
+import cookie from 'react-cookie';
 
 import Drawer from 'material-ui/Drawer';
 import AppBar from 'material-ui/AppBar';
@@ -45,7 +46,11 @@ class App extends Component {
 
     this.state = this.initialState;
 
-    this.client = io();
+   let authCookie = cookie.load('express.sid');
+      authCookie = authCookie.split(':')[1];
+      authCookie = authCookie.split('.')[0];
+
+    this.client = io.connect('//' + window.location.host, {query: 'session_id=' + authCookie});
 
     this.client.on(events.connect, this._handleConnect);
     this.client.on(events.disconnect, this._handleDisconnect);
