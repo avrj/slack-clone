@@ -17,7 +17,7 @@ const config = require('./config/');
 
 if (process.env.NODE_ENV == 'test') {
     const mockgoose = require('mockgoose');
-    
+
     mockgoose(mongoose).then(() => {
         mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/chat_dev');
     });
@@ -106,5 +106,5 @@ if (process.env.NODE_ENV !== 'test') {
 
 module.exports = {
     http,
-    mockgoose,
+    mockgoose: process.env.NODE_ENV == 'test' ? mockgoose : null,
 };
