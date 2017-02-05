@@ -32,16 +32,6 @@ if (process.env.NODE_ENV == 'test') {
     mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/chat_dev');
 }
 
-app.use(function (req, res, next) {
-    if (process.env.NODE_ENV === 'production' && req.headers['x-forwarded-proto'] && req.headers['x-forwarded-proto'] !== 'https') {
-        let sslUrl = ['https://', req.hostname, req.url].join('');
-        
-        return res.redirect(sslUrl);
-    }
-
-    return next();
-});
-
 app.use(helmet());
 
 app.use(logger('dev'));
