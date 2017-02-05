@@ -1,14 +1,21 @@
 [![Build Status](https://travis-ci.com/avrj/slack-clone.svg?token=YppLYpdczdMFqyvXVxYa&branch=master)](https://travis-ci.com/avrj/slack-clone) [![codecov](https://codecov.io/gh/avrj/slack-clone/branch/master/graph/badge.svg?token=ettfcfGuOA)](https://codecov.io/gh/avrj/slack-clone)
 
-# Slack clone
-Stack: React, Socket.io, Node.js, MongoDB
-
+# Slack clone - A real time chat service
 Demo: https://zh47.herokuapp.com
+
+Stack:
+- React
+- Socket.io
+- Express
+- Node.js
+- MongoDB
+
+I didn't use any state container (like Redux) yet, but it might be useful in the future to avoid passing data between components.
 
 ## User stories
 - Users can choose a nickname
-- Users can join channels of their own
-- Users can communicate privately with each other
+- Users can join chatrooms of their own choosing
+- Users can send messages to other users
 
 ## Features
 - Mobile-friendly UI (Material-UI)
@@ -16,6 +23,7 @@ Demo: https://zh47.herokuapp.com
 - Supports multiple logged clients at the same time from one user (e.g. desktop & mobile clients)
 - Authentication is made with Passport.js which makes other sign up methods easy to implement (e.g. Facebook OAuth)
 - Highlights unread conversations
+- Keeps list of online users in real time
 
 ## Install & run
 The server includes webpack-dev-middleware & webpack-hot-middleware to show code changes on browser
@@ -26,6 +34,8 @@ npm start
 ```
 
 ## Testing (Mocha & Chai)
+Most of the real time and routes api are covered in the tests.
+
 ```
 npm test
 ```
