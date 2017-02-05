@@ -23,6 +23,7 @@ I didn't use any state container (like Redux) yet, but it might be useful in the
 - Supports multiple logged clients at the same time from one user (e.g. desktop & mobile clients)
 - Authentication is made with Passport.js which makes other sign up methods easy to implement (e.g. Facebook OAuth)
 - Highlights unread conversations
+- Keeps list of online users in real time
 
 ## Install & run
 The server includes webpack-dev-middleware & webpack-hot-middleware to show code changes on browser
@@ -33,7 +34,7 @@ npm start
 ```
 
 ## Testing (Mocha & Chai)
-Most of the realtime api and routes are covered in the tests.
+Most of the real time and routes api are covered in the tests.
 
 ```
 npm test
