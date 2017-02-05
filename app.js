@@ -12,6 +12,7 @@ const MongoStore = require('connect-mongo')(session);
 const passport = require('passport');
 const compression = require('compression');
 const path = require('path');
+const mockgoose = require('mockgoose');
 
 const config = require('./config/');
 const passportConfig = require('./config/passport')(config, passport);
@@ -20,8 +21,6 @@ const routes = require('./routes');
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
 if (process.env.NODE_ENV == 'test') {
-    const mockgoose = require('mockgoose');
-
     mockgoose(mongoose).then(() => {
         mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/chat_dev');
     });
