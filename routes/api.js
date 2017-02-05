@@ -31,6 +31,19 @@ router.get('/users', (req, res) => {
     });
 });
 
+router.get('/username/:username', (req, res) => {
+    req.params.username = req.params.username.toLowerCase();
+
+    models.User.findOne({'local.username': req.params.username}, (err, user) => {
+        if (err) {
+            return res.status(500).json({error: true});
+        }
+
+        return res.json({alreadyInUse: user ? true : false});
+    });
+});
+
+
 
 router.get('/user/channels', (req, res) => {
     if (!req.user) return res.status(401).end();
