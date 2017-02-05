@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/avrj/slack-clone.svg?token=YppLYpdczdMFqyvXVxYa&branch=master)](https://travis-ci.com/avrj/slack-clone)
+
 # Slack clone
 Stack: React, Socket.io, Node.js, MongoDB
 
