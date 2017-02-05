@@ -47,6 +47,24 @@ class Register extends Component {
           });
   }
 
+    onBlur = () => {
+        fetch('/api/username/' + this.state.username,
+            {
+                method: 'GET',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then((responseJson) => {
+                this.setState({ registerError: responseJson.alreadyInUse });
+            })
+            .catch(() => {
+
+            });
+    }
+
   render() {
     return (
       <div className="ChooseNickDialogContainer">
@@ -60,6 +78,7 @@ class Register extends Component {
               hintText="Username"
               value={this.state.username}
               onChange={e => this.setState({ username: e.target.value })}
+              onBlur={this.onBlur}
               errorText={this.state.registerError && 'Username is already in use. Please choose another.'}
             />
             <TextField
