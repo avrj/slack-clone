@@ -1,12 +1,15 @@
 language: node_js
 node_js:
-  - "6"
+- '6'
 deploy:
   provider: heroku
   app: zh47
   api_key:
     secure: WB/bDJ9S6CN55nU97gDgKQOly5NF1eQdgCrCJGuiVTrWR5bK5sRlpBxaCR7JOxS5iK9I4Ka5eq+AcItCNoRvHdw5vtQkS0TnRujiUw+4Q1zqsj/id1uHHq/nmOf2+NTU91nmxPFi8mdHx+a3FHPjTTekJate5Gxx+6QM7ip9TmO8ohz4baVfnV/WFeRcwUvADYkgAxJbwvNGCfrqwQAqkTf4Sj3eQoRIj+1opO5NOIn+4gvxQl2X+SfV/iPaTg3Wx558LG4nWCP8bJWk7hEwvaUQRRl2NEUEhsW7i5oDXo2PX3Z2oCJa9rJfrPS+RhxZOHTxT7HuNdUihL6gLgJG1BoF7sHZw8FGhlL0W6oHFMPjtQ0HlJf7MRQZ3KW0AzhJptLFK/wlfSS4oz/1z50RGdQSAkswt3QJTJAk3dZQOzKPmBRdRyaIHZtvhyjYdhsrDfieU9rUKeHUtz4oFj8BG8MpCoo0UuaKPVA1YthRmyE41hWYRYcHacLmbjKrcSAiNKqNzeNx2jXMkFJwHWMebkfKabGwG+cv+IpTFwkKxLiYVWqQNYxagWXLzSS/a0YhDDztFgyYEq+ikg+ibRp45q73MKJS7LqaAgyMkOmGY0QXSKAR8rfd/c9+f8tkFqZiHF00/k3NFdc6y/WxuTjTL568FsmA6fVW3rRmMp+IBF4=
 script:
-  - istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec
+- istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec
 after_success:
 - codecov
+env:
+- NODE_ENV=test
+  secure: AvJEVP7w1y3hLhuWxFbkoUjNHhfe6h2fH5k99j67TyQZXTSCoWMZ+DFhjap1UZIOHPIcN6XcdVj40uc6yMJvE2xkAQXZTodW5qVgqiQTEk9iqgQK1dfn5OuMiMIh0jcWa0B5X1GmgjqW6YjURjG0EUWQTW49ENjeCuOQjdVu4NNKwDdW+PnlWjhX9dYPCn32b1WBQWxSvqgPbmfzyyAcQvdbiCYs6ZNCQYXHERrjV8Cagb+jbYlDlY3oyJI/t19xlEL6oFudypv1F/1CvBvOp+/HrwfxknSgvgybNDTjlTyHLPNv1w2CHLBUqgaFwT5s9mQnj/lryB4kzljTtbEj3BByZP6GFcBW8yUZwLkEuld/1M0ImYDkMyof5MLVxn8KIc5KHR0bg40sgytXnzN4rlSsRlCylQqkCyj2ieTSQ9YRR+ppHSnsybb6s7QHg0aFmFWrr8NZSYNo8YZzaIHd9QwZ9fFJg1JVX2CBIr/LvKGlJBWMblyJ6v5Epp21cD3K6+b3c2CFym7+Go6sNOeOOhfA7BOmIf1Z5vn6kdw9ZrtGR+oI8N0p4jQDmXwR6iiG9JYpFP6Qc3PlAPc9yHjnu/A/kC2u7qjUe3m3KAKrYQ6PD7nC9toykDNl8z+4BalBnRkphR2DTwoNBOHAfhKsGGS+dWncoithqKi0Ha8bJzQ=
