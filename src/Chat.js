@@ -287,6 +287,7 @@ class App extends Component {
     const { from } = data;
 
     const msg = {
+      date: Date.now(),
       user: from,
       msg: data.msg,
     };
@@ -317,6 +318,7 @@ class App extends Component {
       const messages = users[to].messages;
 
       messages.push({
+        date: new Date().toISOString(),
         user: this.state.loggedUser,
         msg,
       });
@@ -326,6 +328,7 @@ class App extends Component {
       users[to] = {
         messages: [
           {
+            date: new Date().toISOString(),
             user: this.state.loggedUser,
             msg,
           },
@@ -384,8 +387,41 @@ class App extends Component {
 
   sendMsg = (msg) => {
     if (this.state.activeChannel) {
-      this.client.emit(events.msg, { room: this.state.activeChannel, msg });
+        const channels = JSON.parse(JSON.stringify(this.state.channels));
+
+        const messages = channels[this.state.activeChannel].messages;
+
+        let msgData = {
+            date: new Date().toISOString(),
+            user: this.state.loggedUser,
+            msg: msg,
+        };
+
+        messages.push(msgData);
+
+        channels[this.state.activeChannel].messages = messages;
+
+        this.setState({channels: channels});
+
+
+        this.client.emit(events.msg, { room: this.state.activeChannel, msg });
     } else {
+        const msgData = {
+          date: new Date().toISOString(),
+            user: this.state.loggedUser,
+            msg: msg,
+        };
+
+        const users = JSON.parse(JSON.stringify(this.state.users));
+
+        const messages = users[this.state.activeUser].messages;
+
+        messages.push(msgData);
+
+        users[this.state.activeUser].messages = messages;
+
+        this.setState({users: users});
+
       this.client.emit(events.privateMsg, { to: this.state.activeUser, msg });
     }
   }
