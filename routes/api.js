@@ -60,6 +60,8 @@ router.get('/user/channels', (req, res) => {
 router.get('/channel/:name/messages', (req, res) => {
     if (!req.user) return res.status(401).end();
 
+    req.params.name = req.params.name.toLowerCase();
+
     models.User.findOne({'local.username': req.user, 'local.channels': req.params.name}).exec()
         .then(user => {
             if (user) {
