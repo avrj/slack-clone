@@ -218,31 +218,6 @@ describe('chat server', () => {
     });
   });
 
-  it('sending a message to a (joined) channel should emit message event to that user', function (done) {
-    const msgInput = {
-      room: 'channel',
-      msg: 'msg',
-    };
-
-    this.client.on(events.connect, (data) => {
-      this.client.emit(events.join, msgInput.room);
-    });
-
-    this.client.on(events.join, (channel) => {
-      this.client.emit(events.msg, msgInput);
-    });
-
-    this.client.on(events.msg, (msg) => {
-      expect(msg.room).to.equal(msgInput.room);
-      expect(msg.user).to.equal(defaultUser.username);
-      expect(msg.msg).to.equal(msgInput.msg);
-      expect(msg).to.have.property('date');
-
-      this.client.disconnect();
-      done();
-    });
-  });
-
   it('sending a message to a (joined) channel should emit message event to all clients of that user', function (done) {
     const msgInput = {
       room: 'channel',
@@ -325,26 +300,6 @@ describe('chat server', () => {
       expect(msg.user).to.equal(newUser.username);
       expect(msg.msg).to.equal(msgInput.msg);
       expect(msg).to.have.property('date');
-
-      this.client.disconnect();
-      done();
-    });
-  });
-
-
-  it('sending a private message to self should emit own private messsage event to that user', function (done) {
-    const msgInput = {
-      to: defaultUser.username,
-      msg: 'msg',
-    };
-
-    this.client.on(events.connect, (data) => {
-      this.client.emit(events.privateMsg, msgInput);
-    });
-
-    this.client.on(events.ownPrivateMsg, (msg) => {
-      expect(msg.to).to.equal(msgInput.to);
-      expect(msg.msg).to.equal(msgInput.msg);
 
       this.client.disconnect();
       done();
