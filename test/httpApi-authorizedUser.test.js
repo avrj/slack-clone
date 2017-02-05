@@ -11,6 +11,8 @@ const events = require('../events');
 
 const models = require('../models');
 
+const config = require('../config/');
+
 const serverPort = 3001;
 const serverUrl = `http://localhost:${serverPort}`;
 
@@ -110,8 +112,9 @@ describe('authorized user', () => {
                             .end((err, res) => {
                               expect(res.status).to.equal(200);
 
-                              expect(res.body.local.channels.length).to.equal(1);
+                              expect(res.body.local.channels.length).to.equal(2);
 
+                              expect(res.body.local.channels).to.include(config.defaultChannel);
                               expect(res.body.local.channels).to.include('somechannel');
 
                               done();
