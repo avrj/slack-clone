@@ -138,7 +138,6 @@ module.exports = function (config, io) {
             };
 
             socket.broadcast.to(data.room).emit(events.msg, msgData);
-            socket.emit(events.msg, msgData);
 
             const newMessage = new models.Message();
 
@@ -179,10 +178,12 @@ module.exports = function (config, io) {
 
             /* send copy of privatemsg to all clients of sender */
             connectedClientsForUser.forEach((socket1) => {
-                socket1.emit(events.ownPrivateMsg, {
-                    to: data.to,
-                    msg: data.msg,
-                });
+                if(socket1 !== socket) {
+                    socket1.emit(events.ownPrivateMsg, {
+                        to: data.to,
+                        msg: data.msg,
+                    });
+                }
             });
         }
 
