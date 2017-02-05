@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import RaisedButton from 'material-ui/RaisedButton';
 import TextField from 'material-ui/TextField';
+import Snackbar from 'material-ui/Snackbar';
 import { Link, browserHistory } from 'react-router';
 
 class Login extends Component {
@@ -11,6 +12,8 @@ class Login extends Component {
       username: '',
       password: '',
       signInError: false,
+        showNotificationSnackbar: false,
+        notificationSnackbarText: '',
     };
   }
 
@@ -48,22 +51,34 @@ class Login extends Component {
           this.setState({ signInError: true });
         })
 
-  render() {
-    const { username, password } = this.state;
 
-    const showNotification = () => {
-      if (this.props.location.state) {
-        return this.props.location.state.message ? this.props.location.state.message : null;
-      }
+    componentWillMount() {
+        if (this.props.location.state) {
+            if(this.props.location.state.message) {
+                this.setState({showNotificationSnackbar: true, notificationSnackbarText: this.props.location.state.message});
+            }
+        }
+    }
 
-      return null;
+    handleErrorSnackbarRequestClose = () => {
+        this.setState({
+            showNotificationSnackbar: false,
+            notificationSnackbarText: '',
+        });
     };
 
+  render() {
+    const { username, password } = this.state;
     return (
+        <div>
+            <Snackbar
+                open={this.state.showNotificationSnackbar}
+                message={this.state.notificationSnackbarText}
+                autoHideDuration={4000}
+                onRequestClose={this.handleNotificationSnackbarRequestClose}
+            />
       <div className="ChooseNickDialogContainer">
         <p>Chat App</p>
-
-        {showNotification()}
 
         <div className="ChooseNickDialog">
           <form onSubmit={this.onSubmit}>
@@ -93,6 +108,7 @@ class Login extends Component {
           <p>or <Link to="/register">create an account</Link></p>
         </div>
       </div>
+        </div>
     );
   }
 }
