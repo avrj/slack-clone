@@ -84,36 +84,36 @@ describe('unauthorized user', () => {
   });
 
   it('should not be able to sign in with wrong username', (done) => {
-      request(serverUrl)
+    request(serverUrl)
           .post(apiUrls.register)
           .send(defaultUser)
           .expect('set-cookie', /express.sid/)
           .end((err, res) => {
-              request(serverUrl)
+            request(serverUrl)
                   .post(apiUrls.authenticate)
-                  .send(Object.assign({}, defaultUser, {username: 'wrongusername'}))
+                  .send(Object.assign({}, defaultUser, { username: 'wrongusername' }))
                   .end((err, res) => {
-                      expect(res.status).to.equal(401);
-                      done();
+                    expect(res.status).to.equal(401);
+                    done();
                   });
           });
   });
 
-    it('should not be able to sign in with wrong password', (done) => {
-        request(serverUrl)
+  it('should not be able to sign in with wrong password', (done) => {
+    request(serverUrl)
             .post(apiUrls.register)
             .send(defaultUser)
             .expect('set-cookie', /express.sid/)
             .end((err, res) => {
-                request(serverUrl)
+              request(serverUrl)
                     .post(apiUrls.authenticate)
-                    .send(Object.assign({}, defaultUser, {password: 'wrongpassword'}))
+                    .send(Object.assign({}, defaultUser, { password: 'wrongpassword' }))
                     .end((err, res) => {
-                        expect(res.status).to.equal(401);
-                        done();
+                      expect(res.status).to.equal(401);
+                      done();
                     });
             });
-    });
+  });
 
 
   it('should not be able to log out', (done) => {

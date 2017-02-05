@@ -2,28 +2,28 @@ var path = require('path');
 var webpack = require('webpack');
 
 module.exports = {
-  devtool: 'inline-source-map',
-  entry: [
-    'webpack-hot-middleware/client',
-      path.join(__dirname, 'src', 'index.js'),
-  ],
-  output: {
-     path: path.join(__dirname, 'dist'),
-    filename: 'bundle.js',
-    publicPath: '/'
-  },
-  plugins: [
-    new webpack.HotModuleReplacementPlugin(),
-    new webpack.NoErrorsPlugin(),
-    new webpack.DefinePlugin({
-      'process.env': {
-        NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development')
-      }
-    })
-  ],
-  module: {
-    loaders: [
-          {
+    devtool: 'inline-source-map',
+    entry: [
+        'webpack-hot-middleware/client',
+        path.join(__dirname, 'src', 'index.js'),
+    ],
+    output: {
+        path: path.join(__dirname, 'dist'),
+        filename: 'bundle.js',
+        publicPath: '/'
+    },
+    plugins: [
+        new webpack.HotModuleReplacementPlugin(),
+        new webpack.NoErrorsPlugin(),
+        new webpack.DefinePlugin({
+            'process.env': {
+                NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development')
+            }
+        })
+    ],
+    module: {
+        loaders: [
+            {
                 test: /\.js$/,
                 loaders: ['react-hot', `babel?${JSON.stringify({
                     cacheDirectory: true,
@@ -59,6 +59,6 @@ module.exports = {
                 test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
                 loader: 'url?limit=10000&mimetype=image/svg+xml',
             },
-    ]
-  }
+        ]
+    }
 };

@@ -3,7 +3,6 @@ const logger = require('morgan');
 const express = require('express');
 const app = express();
 const helmet = require('helmet');
-app.use(helmet());
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const bodyParser = require('body-parser');
@@ -11,12 +10,12 @@ const passportSocketIo = require('passport.socketio');
 const session = require('express-session');
 const MongoStore = require('connect-mongo')(session);
 const passport = require('passport');
-
-const config = require('./config/');
-
-const passportConfig = require('./config/passport')(config, passport);
 const compression = require('compression');
 const path = require('path');
+
+const config = require('./config/');
+const passportConfig = require('./config/passport')(config, passport);
+const routes = require('./routes');
 
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
@@ -29,6 +28,8 @@ if (process.env.NODE_ENV == 'test') {
 } else {
     mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/chat_dev');
 }
+
+app.use(helmet());
 
 app.use(logger('dev'));
 app.use(compression());
@@ -57,10 +58,7 @@ passport.deserializeUser((username, done) => {
     done(null, username);
 });
 
-
-//app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/', require('./routes'));
+app.use('/', routes);
 
 if (process.env.NODE_ENV == 'development') {
     console.log('Webpack dev middleware enabled');
@@ -95,20 +93,17 @@ io.use(passportSocketIo.authorize({
     store: sessionStore,
     success: (data, accept) => {
         accept();
-    }, // *optional* callback on success
+    },
     fail: (data, message, error, accept) => {
-        // error indicates whether the fail is due to an error or just a unauthorized client
         if (error) {
             console.log(`error: ${message}`);
+
             accept(new Error('Unauthorized'));
         } else {
             console.log(`ok: ${message}`);
-
-            // the same accept-method as above in the success-callback
-
             accept(new Error('Unauthorized'));
         }
-    },     // *optional* callback on fail/error
+    },
 }));
 
 const socketHandler = require('./socket.js')(config, io);
@@ -119,22 +114,6 @@ if (process.env.NODE_ENV !== 'test') {
     http.listen(port, () => {
         console.log(`listening on *:${port}`);
     });
-
-    /*if (process.env.NODE_ENV !== 'production') {
-     const webpack = require('webpack');
-     const WebpackDevServer = require('webpack-dev-server');
-     const webpackConfig = require('./webpack.config.js');
-
-     new WebpackDevServer(webpack(webpackConfig), {
-     historyApiFallback: true,
-     hot: true,
-     publicPath: webpackConfig.output.publicPath,
-     proxy: {'*': 'http://0.0.0.0:3000'},
-     }).listen(8080, 'localhost', (err) => {
-     if (err) console.log(err);
-     console.log('Webpack Dev Server listening at 8080');
-     });
-     }*/
 }
 
 module.exports = {

@@ -2,7 +2,6 @@ const passportSocketIo = require('passport.socketio');
 const debug = require('debug')('chat');
 
 const events = require('./events');
-
 const models = require('./models');
 
 module.exports = function (config, io) {
@@ -80,11 +79,11 @@ module.exports = function (config, io) {
         function handleLeave(channel) {
             if (!channel) {
                 debug('error leaving channel: no channel specified');
-                
+
                 return;
             }
 
-            if(channel == config.defaultChannel) {
+            if (channel == config.defaultChannel) {
                 debug('can\'t leave the default channel');
 
                 return;
