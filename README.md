@@ -6,6 +6,7 @@ Demo: https://zh47.herokuapp.com
 Stack:
 - React
 - Socket.io
+- Express
 - Node.js
 - MongoDB
 
