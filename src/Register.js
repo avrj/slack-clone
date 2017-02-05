@@ -47,23 +47,23 @@ class Register extends Component {
           });
   }
 
-    onBlur = () => {
-        fetch('/api/username/' + this.state.username,
-            {
-                method: 'GET',
-                headers: {
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json',
-                },
-            })
+  onBlur = () => {
+    fetch(`/api/username/${this.state.username}`,
+      {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+      })
             .then(response => response.json())
             .then((responseJson) => {
-                this.setState({ registerError: responseJson.alreadyInUse });
+              this.setState({ registerError: responseJson.alreadyInUse });
             })
             .catch(() => {
 
             });
-    }
+  }
 
   render() {
     return (

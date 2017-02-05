@@ -387,40 +387,40 @@ class App extends Component {
 
   sendMsg = (msg) => {
     if (this.state.activeChannel) {
-        const channels = JSON.parse(JSON.stringify(this.state.channels));
+      const channels = JSON.parse(JSON.stringify(this.state.channels));
 
-        const messages = channels[this.state.activeChannel].messages;
+      const messages = channels[this.state.activeChannel].messages;
 
-        let msgData = {
-            date: new Date().toISOString(),
-            user: this.state.loggedUser,
-            msg: msg,
-        };
+      const msgData = {
+        date: new Date().toISOString(),
+        user: this.state.loggedUser,
+        msg,
+      };
 
-        messages.push(msgData);
+      messages.push(msgData);
 
-        channels[this.state.activeChannel].messages = messages;
+      channels[this.state.activeChannel].messages = messages;
 
-        this.setState({channels: channels});
+      this.setState({ channels });
 
 
-        this.client.emit(events.msg, { room: this.state.activeChannel, msg });
+      this.client.emit(events.msg, { room: this.state.activeChannel, msg });
     } else {
-        const msgData = {
-          date: new Date().toISOString(),
-            user: this.state.loggedUser,
-            msg: msg,
-        };
+      const msgData = {
+        date: new Date().toISOString(),
+        user: this.state.loggedUser,
+        msg,
+      };
 
-        const users = JSON.parse(JSON.stringify(this.state.users));
+      const users = JSON.parse(JSON.stringify(this.state.users));
 
-        const messages = users[this.state.activeUser].messages;
+      const messages = users[this.state.activeUser].messages;
 
-        messages.push(msgData);
+      messages.push(msgData);
 
-        users[this.state.activeUser].messages = messages;
+      users[this.state.activeUser].messages = messages;
 
-        this.setState({users: users});
+      this.setState({ users });
 
       this.client.emit(events.privateMsg, { to: this.state.activeUser, msg });
     }
@@ -556,7 +556,7 @@ class App extends Component {
   handleErrorSnackbarRequestClose = () => {
     this.setState({
       showErrorSnackbar: false,
-        errorSnackbarText: '',
+      errorSnackbarText: '',
     });
   };
 
