@@ -1,9 +1,15 @@
 [![Build Status](https://travis-ci.com/avrj/slack-clone.svg?token=YppLYpdczdMFqyvXVxYa&branch=master)](https://travis-ci.com/avrj/slack-clone) [![codecov](https://codecov.io/gh/avrj/slack-clone/branch/master/graph/badge.svg?token=ettfcfGuOA)](https://codecov.io/gh/avrj/slack-clone)
 
 # Slack clone
-Stack: React, Socket.io, Node.js, MongoDB
-
 Demo: https://zh47.herokuapp.com
+
+Stack:
+- React
+- Socket.io
+- Node.js
+- MongoDB
+
+I didn't use any state container (like Redux) yet, but it might be useful in the future to avoid passing data between components.
 
 ## User stories
 - Users can choose a nickname
@@ -26,6 +32,8 @@ npm start
 ```
 
 ## Testing (Mocha & Chai)
+Most of the realtime api and routes are covered in the tests.
+
 ```
 npm test
 ```
