@@ -19,6 +19,7 @@ const apiUrls = {
   users: '/api/users',
   userChannels: '/api/user/channels',
   channelMessages: '/api/channel/somechannel/messages',
+    usernameExists: '/api/username/mikko',
 };
 
 const defaultUser = user = {
@@ -151,4 +152,31 @@ describe('unauthorized user', () => {
               done();
             });
   });
+
+    it('should be able to check if username exists', (done) => {
+        request(serverUrl)
+            .post(apiUrls.register)
+            .send(defaultUser)
+            .end((err, res) => {
+                request(serverUrl)
+                    .get(apiUrls.usernameExists)
+                    .end((err, res) => {
+                        expect(res.status).to.equal(200);
+                        expect(res.body).to.have.property('alreadyInUse', true);
+
+                        done();
+                    });
+            });
+    });
+
+    it('should be able to check if username doesn\'t exist', (done) => {
+        request(serverUrl)
+            .get(apiUrls.usernameExists)
+            .end((err, res) => {
+                expect(res.status).to.equal(200);
+                expect(res.body).to.have.property('alreadyInUse', false);
+
+                done();
+            });
+    });
 });
