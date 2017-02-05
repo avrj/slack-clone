@@ -3,6 +3,8 @@
 # Slack clone
 Stack: React, Socket.io, Node.js, MongoDB
 
+Demo: https://zh47.herokuapp.com
+
 # User stories
 - Users can choose a nickname
 - Users can join channels of their own
