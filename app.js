@@ -27,6 +27,8 @@ if (process.env.NODE_ENV == 'test') {
         mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/chat_dev');
     });
 } else {
+    console.log('database not mocked');
+
     mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/chat_dev');
 }
 
