@@ -7,6 +7,7 @@ import AppBar from 'material-ui/AppBar';
 import IconMenu from 'material-ui/IconMenu';
 import IconButton from 'material-ui/IconButton';
 import MenuItem from 'material-ui/MenuItem';
+import Snackbar from 'material-ui/Snackbar';
 import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert';
 import events from '../events';
 import './App.css';
@@ -33,6 +34,8 @@ class App extends Component {
       connecting: true,
       connected: false,
       disconnectedByClient: false,
+      showErrorSnackbar: false,
+      errorSnackbarText: '',
     };
 
     this.persistentActiveChannelIdentifier = 'activeChannel';
@@ -73,7 +76,7 @@ class App extends Component {
             .then(response => response.json())
             .then(this.handleOnConnectFetchUsersResponse)
             .catch((error) => {
-              alert(`Error retrieving users: ${error}`);
+              this.setState({ showErrorSnackbar: true, errorSnackbarText: 'Error retrieving users' });
             });
   }
 
@@ -102,7 +105,7 @@ class App extends Component {
             .then(response => response.json())
             .then(this.handleOnConnectFetchUserChannelsResponse)
             .catch((error) => {
-              alert('Error retrieving user\'s channels');
+              this.setState({ showErrorSnackbar: true, errorSnackbarText: 'Error retrieving user\'s channels' });
             });
   }
 
@@ -145,7 +148,7 @@ class App extends Component {
                 .then(response => response.json())
                 .then(responseJson => this.handleOnConnectFetchActiveChannelMessagesResponse(responseJson, channels))
                 .catch((error) => {
-                  alert(`Error retrieving channels messages: ${error}`);
+                  this.setState({ showErrorSnackbar: true, errorSnackbarText: 'Error retrieving channels messages' });
                 });
     }
   };
@@ -191,7 +194,7 @@ class App extends Component {
         },
       });
     } else {
-      alert(`We've encountered an unexpected error: ${error}`);
+      this.setState({ showErrorSnackbar: true, errorSnackbarText: `Temporary connection error: ${error}` });
     }
   }
 
@@ -207,7 +210,7 @@ class App extends Component {
       })
             .then(response => response.json())
             .then(responseJson => this.handleJoinedChannelMessages(responseJson, channel))
-            .catch(error => alert(`Error retrieving channels messages: ${error}`));
+            .catch(error => this.setState({ showErrorSnackbar: true, errorSnackbarText: 'Error retrieving channels messages' }));
   };
 
   handleJoinedChannelMessages = (responseJson, channel) => {
@@ -416,7 +419,7 @@ class App extends Component {
                 .then(response => response.json())
                 .then(responseJson => this.handleActiveChannelMessages(responseJson, channel))
                 .catch((error) => {
-                  alert('Error retrieving channels messages');
+                  this.setState({ showErrorSnackbar: true, errorSnackbarText: 'Error retrieving channels messages' });
                 });
     }
   }
@@ -476,7 +479,7 @@ class App extends Component {
     })
         .then(response => response.json())
         .then(this.handleSignOutResponse)
-        .catch(error => alert(`Unexpected error while trying to sign out: ${error}`));
+        .catch(error => this.setState({ showErrorSnackbar: true, errorSnackbarText: 'Unexpected error while trying to sign out' }));
 
   handleSignOutResponse = (responseJson) => {
     if (responseJson.success) {
@@ -493,7 +496,7 @@ class App extends Component {
         },
       });
     } else {
-      alert('Unexpected error while trying to sign out');
+      this.setState({ showErrorSnackbar: true, errorSnackbarText: 'Unexpected error while trying to sign out' });
     }
   };
 
@@ -513,6 +516,14 @@ class App extends Component {
     itemsToRemove.map(item => localStorage.removeItem(item));
   };
 
+
+  handleErrorSnackbarRequestClose = () => {
+    this.setState({
+      showErrorSnackbar: false,
+        errorSnackbarText: '',
+    });
+  };
+
   renderChat = () => {
     const { loggedUser, activeChannel, activeUser } = this.state;
 
@@ -529,6 +540,12 @@ class App extends Component {
     } else if (this.state.connected) {
       return (
         <div>
+          <Snackbar
+            open={this.state.showErrorSnackbar}
+            message={this.state.errorSnackbarText}
+            autoHideDuration={4000}
+            onRequestClose={this.handleErrorSnackbarRequestClose}
+          />
           {this.state.showJoinChannelDialog && <JoinChannelDialog join={this.join} />}
           <Drawer
             docked={false}
@@ -559,7 +576,7 @@ class App extends Component {
               iconElementRight={
                 <IconMenu
                   iconButtonElement={
-                      <IconButton><MoreVertIcon /></IconButton>
+                    <IconButton><MoreVertIcon /></IconButton>
                                     }
                   targetOrigin={{ horizontal: 'right', vertical: 'top' }}
                   anchorOrigin={{ horizontal: 'right', vertical: 'top' }}
