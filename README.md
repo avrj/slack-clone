@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/avrj/slack-clone.svg?token=YppLYpdczdMFqyvXVxYa&branch=master)](https://travis-ci.com/avrj/slack-clone) [![codecov](https://codecov.io/gh/avrj/slack-clone/branch/master/graph/badge.svg?token=ettfcfGuOA)](https://codecov.io/gh/avrj/slack-clone)
+[![Build Status](https://travis-ci.org/avrj/slack-clone.svg?branch=master)](https://travis-ci.org/avrj/slack-clone) [![codecov](https://codecov.io/gh/avrj/slack-clone/branch/master/graph/badge.svg?token=ettfcfGuOA)](https://codecov.io/gh/avrj/slack-clone)
 
 # Slack clone - A real time chat service
 Demo: https://zh47.herokuapp.com
