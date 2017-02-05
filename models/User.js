@@ -26,8 +26,8 @@ const UserSchema = mongoose.Schema({
   },
 });
 
-UserSchema.pre('save', function (next) {
-    this.username = this.username.toLowerCase();
+UserSchema.pre('save', function(next) {
+    this.local.username = this.local.username.toLowerCase();
 
     next();
 });
