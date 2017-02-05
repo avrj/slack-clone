@@ -4,13 +4,13 @@ import IconButton from 'material-ui/IconButton';
 
 import ChannelListItem from './ChannelListItem';
 
-const ChannelList = ({ channels, activeChannel, hasNewMessages, setActiveChannel, showJoinChannelDialog }) => {
+const ChannelList = ({ channels, activeChannel, setActiveChannel, showJoinChannelDialog }) => {
   const renderMenuItems = () => Object.keys(channels).map((key) => {
     const channel = channels[key];
 
     return (<ChannelListItem
       active={activeChannel === key}
-      hasNewMessages={hasNewMessages}
+      hasNewMessages={channel.hasNewMessages}
       key={key}
       onTouchTap={() => setActiveChannel(key)}
       title={key}
