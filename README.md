@@ -26,7 +26,7 @@ I didn't use any state container (like Redux) yet, but it might be useful in the
 - Keeps list of online users in real time
 
 ## Install & run
-The server includes webpack-dev-middleware & webpack-hot-middleware to show code changes on browser
+The server includes webpack-dev-middleware & webpack-hot-middleware to show code changes on browser without refreshing
 
 ```
 npm install
