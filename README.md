@@ -7,8 +7,8 @@ Demo: https://zh47.herokuapp.com
 
 ## User stories
 - Users can choose a nickname
-- Users can join channels of their own
-- Users can communicate privately with each other
+- Users can join chatrooms of their own choosing
+- Users can send messages to other users
 
 ## Features
 - Mobile-friendly UI (Material-UI)
