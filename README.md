@@ -1,4 +1,4 @@
-** I'm not going to maintain this repo anymore, but feel free to use the code **
+** I'm not going to maintain this repo anymore, but feel free to fork or create PRs **
 
 
 
