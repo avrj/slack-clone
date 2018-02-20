@@ -60,7 +60,7 @@
     "webpack-dev-server": "1.16.5"
   },
   "devDependencies": {
-    "babel-eslint": "7.2.3",
+    "babel-eslint": "8.2.2",
     "chai": "3.5.0",
     "codecov": "1.0.1",
     "eslint": "3.19.0",
