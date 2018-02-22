@@ -67,7 +67,7 @@
     "eslint-config-airbnb": "14.1.0",
     "eslint-plugin-import": "2.8.0",
     "eslint-plugin-jsx-a11y": "3.0.2",
-    "eslint-plugin-react": "6.10.3",
+    "eslint-plugin-react": "7.7.0",
     "mocha": "3.5.3",
     "supertest": "2.0.1",
     "webpack-dev-middleware": "2.0.5",
