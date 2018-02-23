@@ -51,7 +51,7 @@
     "react-router": "4.2.0",
     "react-sidebar": "2.3.2",
     "react-tap-event-plugin": "3.0.2",
-    "sass-loader": "4.1.1",
+    "sass-loader": "6.0.6",
     "socket.io": "1.7.4",
     "socket.io-client": "2.0.4",
     "style-loader": "0.20.2",
