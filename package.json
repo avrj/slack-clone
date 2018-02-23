@@ -35,7 +35,7 @@
     "helmet": "3.11.0",
     "istanbul": "0.4.5",
     "material-ui": "0.20.0",
-    "mockgoose": "6.0.8",
+    "mockgoose": "7.3.5",
     "moment": "2.20.1",
     "mongoose": "4.13.11",
     "morgan": "1.9.0",
