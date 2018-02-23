@@ -27,7 +27,7 @@
     "connect-mongo": "2.0.1",
     "cookie-parser": "1.4.3",
     "cors": "2.8.4",
-    "css-loader": "0.28.9",
+    "css-loader": "0.28.10",
     "debug": "3.1.0",
     "express": "4.16.2",
     "express-session": "1.15.6",
