@@ -9,7 +9,17 @@
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "test": "NODE_ENV=test mocha -R spec",
-    "coverage": "NODE_ENV=test istanbul cover _mocha -- -R spec"
+    "coverage": "NODE_ENV=test istanbul cover _mocha -- -R spec",
+    "format": "prettier-standard 'src/**/*.js'",
+    "precommit": "lint-staged"
+  },
+  "lint-staged": {
+    "linters": {
+      "src/**/*.js": [
+        "prettier-standard",
+        "git add"
+      ]
+    }
   },
   "author": "Anton Räihä",
   "private": true,
@@ -68,7 +78,10 @@
     "eslint-plugin-import": "2.9.0",
     "eslint-plugin-jsx-a11y": "6.0.3",
     "eslint-plugin-react": "7.7.0",
+    "husky": "^0.14.3",
+    "lint-staged": "^7.0.0",
     "mocha": "3.5.3",
+    "prettier-standard": "^8.0.0",
     "supertest": "3.0.0",
     "webpack-dev-middleware": "2.0.6",
     "webpack-hot-middleware": "2.21.0"
