@@ -78,7 +78,7 @@ describe('authorized user', () => {
                     .end((err, res) => {
                       expect(res.status).to.equal(200);
 
-                      expect(res.body).length.to.be(1);
+                      expect(res.body).to.have.lengthOf(1);
 
                       expect(res.body[0].local).to.have.property('username');
                       expect(res.body[0].local).to.have.property('online');
@@ -112,7 +112,7 @@ describe('authorized user', () => {
                             .end((err, res) => {
                               expect(res.status).to.equal(200);
 
-                              expect(res.body.local.channels.length).to.equal(2);
+                              expect(res.body.local.channels).to.have.lengthOf(2);
 
                               expect(res.body.local.channels).to.include(config.defaultChannel);
                               expect(res.body.local.channels).to.include('somechannel');
