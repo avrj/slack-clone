@@ -10,12 +10,12 @@
     "lint:fix": "eslint --fix",
     "test": "NODE_ENV=test mocha -R spec",
     "coverage": "NODE_ENV=test istanbul cover _mocha -- -R spec",
-    "format": "prettier-standard 'src/**/*.js'",
+    "format": "prettier-standard '{src,test,routes,models,config}/**/*.js'",
     "precommit": "lint-staged"
   },
   "lint-staged": {
     "linters": {
-      "src/**/*.js": [
+      "{src,test,routes,models,config}/**/*.js": [
         "prettier-standard",
         "git add"
       ]
