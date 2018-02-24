@@ -4,30 +4,38 @@ import IconButton from 'material-ui/IconButton';
 
 import ChannelListItem from './ChannelListItem';
 
-const ChannelList = ({ channels, activeChannel, setActiveChannel, showJoinChannelDialog }) => {
-  const renderMenuItems = () => Object.keys(channels).map((key) => {
-    const channel = channels[key];
+const ChannelList = ({
+  channels, activeChannel, setActiveChannel, showJoinChannelDialog,
+}) => {
+  const renderMenuItems = () =>
+    Object.keys(channels).map((key) => {
+      const channel = channels[key];
 
-    return (<ChannelListItem
-      active={activeChannel === key}
-      hasNewMessages={channel.hasNewMessages}
-      key={key}
-      onTouchTap={() => setActiveChannel(key)}
-      title={key}
-    />);
-  });
+      return (
+        <ChannelListItem
+          active={activeChannel === key}
+          hasNewMessages={channel.hasNewMessages}
+          key={key}
+          onTouchTap={() => setActiveChannel(key)}
+          title={key}
+        />
+      );
+    });
 
   return (
     <div>
-      <div className="DrawerListTitle">Channels <IconButton
-        className="VerticalAlignMiddle"
-        tooltip="Join channel"
-        onTouchTap={showJoinChannelDialog}
-      ><AddCircle /></IconButton></div>
-
-      <div>
-        {renderMenuItems()}
+      <div className="DrawerListTitle">
+        Channels{' '}
+        <IconButton
+          className="VerticalAlignMiddle"
+          tooltip="Join channel"
+          onTouchTap={showJoinChannelDialog}
+        >
+          <AddCircle />
+        </IconButton>
       </div>
+
+      <div>{renderMenuItems()}</div>
     </div>
   );
 };

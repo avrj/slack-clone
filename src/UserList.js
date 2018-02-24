@@ -9,14 +9,16 @@ class UserList extends Component {
       return Object.keys(users).map((user) => {
         const you = user === this.props.loggedUser ? ' (you)' : '';
 
-        return (<UserListItem
-          active={this.props.activeUser === user}
-          online={users[user].online}
-          hasNewMessages={users[user].hasNewMessages}
-          key={user}
-          onTouchTap={() => this.props.setActiveUser(user)}
-          user={user + you}
-        />);
+        return (
+          <UserListItem
+            active={this.props.activeUser === user}
+            online={users[user].online}
+            hasNewMessages={users[user].hasNewMessages}
+            key={user}
+            onTouchTap={() => this.props.setActiveUser(user)}
+            user={user + you}
+          />
+        );
       });
     };
 
@@ -24,9 +26,7 @@ class UserList extends Component {
       <div>
         <div className="DrawerListTitle">{this.props.title}</div>
 
-        <div>
-          {renderListItems()}
-        </div>
+        <div>{renderListItems()}</div>
       </div>
     );
   }

@@ -13,20 +13,31 @@ class Layout extends Component {
 
   onSetOpen = (open) => {
     this.setState({ open });
-  }
+  };
 
   render() {
     return (
       <div>
         <Sidebar
-          sidebar={<div style={{ backgroundColor: 'white', height: '100%', paddingLeft: '10', paddingRight: '10' }}>testi
-                    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>}
-          open={this.state.open} docked={false} onSetOpen={this.onSetOpen}
+          sidebar={
+            <div
+              style={{
+                backgroundColor: 'white',
+                height: '100%',
+                paddingLeft: '10',
+                paddingRight: '10',
+              }}
+            >
+              testi xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+            </div>
+          }
+          open={this.state.open}
+          docked={false}
+          onSetOpen={this.onSetOpen}
         >
           <b onClick={() => this.setState({ open: true })}>Mains content</b>
         </Sidebar>
       </div>
-
     );
   }
 }

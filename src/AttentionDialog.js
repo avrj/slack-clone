@@ -4,11 +4,9 @@ import Dialog from 'material-ui/Dialog';
 class AttentionDialog extends Component {
   render() {
     return (
-      <Dialog
-        title={this.props.title}
-        modal
-        open
-      >{this.props.text}</Dialog>
+      <Dialog title={this.props.title} modal open>
+        {this.props.text}
+      </Dialog>
     );
   }
 }

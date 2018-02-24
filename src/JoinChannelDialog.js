@@ -20,23 +20,13 @@ class JoinChannelDialog extends Component {
 
       this.setState({ channelToJoin: '' });
     }
-  }
+  };
 
   render() {
-    const actions = [
-      <RaisedButton
-        label="Join"
-        primary
-        onTouchTap={this.join}
-      />,
-    ];
+    const actions = [<RaisedButton label="Join" primary onTouchTap={this.join} />];
 
     return (
-      <Dialog
-        actions={actions}
-        modal={false}
-        open
-      >
+      <Dialog actions={actions} modal={false} open>
         <p>Join channel</p>
         <form onSubmit={this.join}>
           <TextField
