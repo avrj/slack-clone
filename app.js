@@ -12,7 +12,8 @@ const MongoStore = require('connect-mongo')(session);
 const passport = require('passport');
 const compression = require('compression');
 const path = require('path');
-const mockgoose = require('mockgoose');
+const Mockgoose = require('mockgoose').Mockgoose;
+const mockgoose = new Mockgoose(mongoose);
 
 const config = require('./config/');
 const passportConfig = require('./config/passport')(config, passport);
@@ -23,7 +24,7 @@ process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 if (process.env.NODE_ENV == 'test') {
     console.log('database mocked');
 
-    mockgoose(mongoose).then(() => {
+    mockgoose.prepareStorage().then(() => {
         mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/chat_dev');
     });
 } else {
