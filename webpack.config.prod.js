@@ -17,20 +17,19 @@ module.exports = {
             'process.env': {
                 NODE_ENV: JSON.stringify('production')
             }
-        }),
-        new webpack.optimize.OccurenceOrderPlugin(),
-        new webpack.optimize.DedupePlugin(),
-        new webpack.optimize.UglifyJsPlugin()
+        })
     ],
 
     module: {
-        loaders: [
+        rules: [
             {
                 test: /\.js$/,
-                loaders: [`babel?${JSON.stringify({
-                    cacheDirectory: true,
-                    presets: ['es2015', 'stage-0', 'react'],
-                })}`],
+                use: {
+                    loader: 'babel-loader',
+                     options: {
+                        presets: ['es2015', 'stage-0', 'react']
+                     },
+                },
                 exclude: /node_modules/,
             },
             {
