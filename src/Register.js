@@ -14,56 +14,51 @@ class Register extends Component {
     };
   }
 
-
   onSubmit = (e) => {
     e.preventDefault();
 
     this.setState({ registerError: false });
 
-    fetch('/api/register',
-      {
-        credentials: 'include',
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: this.state.username,
-          password: this.state.password,
-        }),
+    fetch('/api/register', {
+      credentials: 'include',
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: this.state.username,
+        password: this.state.password,
+      }),
+    })
+      .then(response => response.json())
+      .then(() => {
+        browserHistory.push({
+          pathname: '/chat',
+          state: {
+            username: this.state.username,
+          },
+        });
       })
-          .then(response => response.json())
-          .then(() => {
-            browserHistory.push({
-              pathname: '/chat',
-              state: {
-                username: this.state.username,
-              },
-            });
-          })
-          .catch(() => {
-            this.setState({ registerError: true });
-          });
-  }
+      .catch(() => {
+        this.setState({ registerError: true });
+      });
+  };
 
   onBlur = () => {
-    fetch(`/api/username/${this.state.username}`,
-      {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
+    fetch(`/api/username/${this.state.username}`, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(response => response.json())
+      .then((responseJson) => {
+        this.setState({ registerError: responseJson.alreadyInUse });
       })
-            .then(response => response.json())
-            .then((responseJson) => {
-              this.setState({ registerError: responseJson.alreadyInUse });
-            })
-            .catch(() => {
-
-            });
-  }
+      .catch(() => {});
+  };
 
   render() {
     return (
@@ -79,7 +74,9 @@ class Register extends Component {
               value={this.state.username}
               onChange={e => this.setState({ username: e.target.value })}
               onBlur={this.onBlur}
-              errorText={this.state.registerError && 'Username is already in use. Please choose another.'}
+              errorText={
+                this.state.registerError && 'Username is already in use. Please choose another.'
+              }
             />
             <TextField
               type="password"
@@ -96,7 +93,9 @@ class Register extends Component {
               primary
             />
           </form>
-          <p>or <Link to="/">login with an existing account</Link></p>
+          <p>
+            or <Link to="/">login with an existing account</Link>
+          </p>
         </div>
       </div>
     );

@@ -8,11 +8,13 @@ import Layout from './Layout';
 
 class AppRouter extends Component {
   render() {
-    const routes = (<Route path="/" component={AppContainer}>
-      <IndexRoute component={Login} />
-      <Route path="chat" component={Chat} />
-      <Route path="register" component={Register} />
-    </Route>);
+    const routes = (
+      <Route path="/" component={AppContainer}>
+        <IndexRoute component={Login} />
+        <Route path="chat" component={Chat} />
+        <Route path="register" component={Register} />
+      </Route>
+    );
 
     return (
       <Router key={Math.random()} history={browserHistory}>

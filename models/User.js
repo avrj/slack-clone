@@ -1,5 +1,3 @@
-
-
 const bcrypt = require('bcrypt-nodejs');
 const mongoose = require('mongoose');
 
@@ -26,10 +24,10 @@ const UserSchema = mongoose.Schema({
   },
 });
 
-UserSchema.pre('save', function(next) {
-    this.local.username = this.local.username.toLowerCase();
+UserSchema.pre('save', function (next) {
+  this.local.username = this.local.username.toLowerCase();
 
-    next();
+  next();
 });
 
 UserSchema.methods.generateHash = function (password) {

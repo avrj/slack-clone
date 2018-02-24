@@ -21,7 +21,7 @@ class ChatInput extends Component {
     this.setState({ msgToSend: '' });
 
     this.msgInput.focus();
-  }
+  };
 
   render() {
     return (

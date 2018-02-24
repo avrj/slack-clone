@@ -20,8 +20,7 @@
   "extends": "airbnb",
   "rules": {
     "eqeqeq": [
-      "error",
-      "allow-null"
+      "error", "always", {"null": "ignore"}
     ],
     "no-void": "error",
     "react/jsx-filename-extension": [

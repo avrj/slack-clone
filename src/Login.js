@@ -23,10 +23,10 @@ class Login extends Component {
     this.setState({ signInError: false });
 
     if (this.state.username.length >= 1 && this.state.password.length >= 1) this.authenticate();
-  }
+  };
 
-  authenticate = () => fetch('/api/authenticate',
-    {
+  authenticate = () =>
+    fetch('/api/authenticate', {
       credentials: 'include',
       method: 'POST',
       headers: {
@@ -38,24 +38,26 @@ class Login extends Component {
         password: this.state.password,
       }),
     })
-        .then(response => response.json())
-        .then((responseJson) => {
-          browserHistory.push({
-            pathname: '/chat',
-            state: {
-              username: responseJson.local.username,
-            },
-          });
-        })
-        .catch(() => {
-          this.setState({ signInError: true });
-        })
-
+      .then(response => response.json())
+      .then((responseJson) => {
+        browserHistory.push({
+          pathname: '/chat',
+          state: {
+            username: responseJson.local.username,
+          },
+        });
+      })
+      .catch(() => {
+        this.setState({ signInError: true });
+      });
 
   componentWillMount() {
     if (this.props.location.state) {
       if (this.props.location.state.message) {
-        this.setState({ showNotificationSnackbar: true, notificationSnackbarText: this.props.location.state.message });
+        this.setState({
+          showNotificationSnackbar: true,
+          notificationSnackbarText: this.props.location.state.message,
+        });
       }
     }
   }
@@ -97,15 +99,11 @@ class Login extends Component {
                 onChange={e => this.setState({ password: e.target.value })}
                 errorText={this.state.signInError && "Username and/or password doesn't match"}
               />
-              <RaisedButton
-                type="submit"
-                disabled={false}
-                fullWidth
-                label="Login"
-                primary
-              />
+              <RaisedButton type="submit" disabled={false} fullWidth label="Login" primary />
             </form>
-            <p>or <Link to="/register">create an account</Link></p>
+            <p>
+              or <Link to="/register">create an account</Link>
+            </p>
           </div>
         </div>
       </div>

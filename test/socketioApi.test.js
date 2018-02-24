@@ -1,4 +1,5 @@
 const app = require('../app');
+
 const server = app.http;
 const mockgoose = app.mockgoose;
 const chai = require('chai'),
@@ -27,27 +28,27 @@ const apiUrls = {
   authenticate: '/api/authenticate',
 };
 
-const defaultUser = user = {
+const defaultUser = (user = {
   username: 'mikko',
   password: 'mikko',
-};
+});
 
 describe('chat server', () => {
   beforeEach(function (done) {
     server.listen(serverPort, () => {
       request(serverUrl)
-                .post(apiUrls.register)
-                .send(defaultUser)
-                .expect(200)
-                .end((err, res) => {
-                  this.cookie = getSessionIdFromCookie(res);
+        .post(apiUrls.register)
+        .send(defaultUser)
+        .expect(200)
+        .end((err, res) => {
+          this.cookie = getSessionIdFromCookie(res);
 
-                  this.client = io.connect(serverUrl, {
-                    query: `session_id=${this.cookie}`,
-                  });
+          this.client = io.connect(serverUrl, {
+            query: `session_id=${this.cookie}`,
+          });
 
-                  done();
-                });
+          done();
+        });
     });
   });
 
@@ -56,7 +57,6 @@ describe('chat server', () => {
       done();
     });
   });
-
 
   it('should be able to connect with session id', function (done) {
     this.client.on(events.connect, (data) => {
@@ -75,7 +75,6 @@ describe('chat server', () => {
       done();
     });
   });
-
 
   it('should not be able to connect with invalid session id', (done) => {
     this.client = io.connect(serverUrl, {
@@ -98,20 +97,20 @@ describe('chat server', () => {
 
     this.client.on(events.connect, (data) => {
       request(serverUrl)
-                .post(apiUrls.register)
-                .send(newUser)
-                .expect(200)
-                .end((err, res) => {
-                  const cookie = getSessionIdFromCookie(res);
+        .post(apiUrls.register)
+        .send(newUser)
+        .expect(200)
+        .end((err, res) => {
+          const cookie = getSessionIdFromCookie(res);
 
-                  const anotherClient = io.connect(serverUrl, {
-                    query: `session_id=${cookie}`,
-                  });
+          const anotherClient = io.connect(serverUrl, {
+            query: `session_id=${cookie}`,
+          });
 
-                  anotherClient.on(events.connect, () => {
-                    anotherClient.disconnect();
-                  });
-                });
+          anotherClient.on(events.connect, () => {
+            anotherClient.disconnect();
+          });
+        });
     });
 
     this.client.on(events.online, (user) => {
@@ -130,20 +129,20 @@ describe('chat server', () => {
 
     this.client.on(events.connect, (data) => {
       request(serverUrl)
-                .post(apiUrls.register)
-                .send(newUser)
-                .expect(200)
-                .end((err, res) => {
-                  const cookie = getSessionIdFromCookie(res);
+        .post(apiUrls.register)
+        .send(newUser)
+        .expect(200)
+        .end((err, res) => {
+          const cookie = getSessionIdFromCookie(res);
 
-                  const anotherClient = io.connect(serverUrl, {
-                    query: `session_id=${cookie}`,
-                  });
+          const anotherClient = io.connect(serverUrl, {
+            query: `session_id=${cookie}`,
+          });
 
-                  anotherClient.on(events.connect, () => {
-                    anotherClient.disconnect();
-                  });
-                });
+          anotherClient.on(events.connect, () => {
+            anotherClient.disconnect();
+          });
+        });
     });
 
     this.client.on(events.offline, (user) => {
@@ -174,21 +173,21 @@ describe('chat server', () => {
 
     this.client.on(events.connect, (data) => {
       request(serverUrl)
-                .post(apiUrls.authenticate)
-                .send(defaultUser)
-                .expect(200)
-                .end((err, res) => {
-                  const cookie = getSessionIdFromCookie(res);
+        .post(apiUrls.authenticate)
+        .send(defaultUser)
+        .expect(200)
+        .end((err, res) => {
+          const cookie = getSessionIdFromCookie(res);
 
-                  const anotherClient = io.connect(serverUrl, {
-                    query: `session_id=${cookie}`,
-                  });
+          const anotherClient = io.connect(serverUrl, {
+            query: `session_id=${cookie}`,
+          });
 
-                  anotherClient.on(events.connect, () => {
-                    anotherClient.emit(events.join, newChannel);
-                    anotherClient.disconnect();
-                  });
-                });
+          anotherClient.on(events.connect, () => {
+            anotherClient.emit(events.join, newChannel);
+            anotherClient.disconnect();
+          });
+        });
     });
 
     this.client.on(events.join, (channel) => {
@@ -230,21 +229,21 @@ describe('chat server', () => {
 
     this.client.on(events.join, (channel) => {
       request(serverUrl)
-                .post(apiUrls.authenticate)
-                .send(defaultUser)
-                .expect(200)
-                .end((err, res) => {
-                  const cookie = getSessionIdFromCookie(res);
+        .post(apiUrls.authenticate)
+        .send(defaultUser)
+        .expect(200)
+        .end((err, res) => {
+          const cookie = getSessionIdFromCookie(res);
 
-                  const anotherClient = io.connect(serverUrl, {
-                    query: `session_id=${cookie}`,
-                  });
+          const anotherClient = io.connect(serverUrl, {
+            query: `session_id=${cookie}`,
+          });
 
-                  anotherClient.on(events.connect, () => {
-                    anotherClient.emit(events.msg, msgInput);
-                    anotherClient.disconnect();
-                  });
-                });
+          anotherClient.on(events.connect, () => {
+            anotherClient.emit(events.msg, msgInput);
+            anotherClient.disconnect();
+          });
+        });
     });
 
     this.client.on(events.msg, (msg) => {
@@ -275,24 +274,24 @@ describe('chat server', () => {
 
     this.client.on(events.join, (channel) => {
       request(serverUrl)
-                .post(apiUrls.register)
-                .send(newUser)
-                .expect(200)
-                .end((err, res) => {
-                  const cookie = getSessionIdFromCookie(res);
+        .post(apiUrls.register)
+        .send(newUser)
+        .expect(200)
+        .end((err, res) => {
+          const cookie = getSessionIdFromCookie(res);
 
-                  const anotherClient = io.connect(serverUrl, {
-                    query: `session_id=${cookie}`,
-                  });
+          const anotherClient = io.connect(serverUrl, {
+            query: `session_id=${cookie}`,
+          });
 
-                  anotherClient.on(events.connect, () => {
-                    anotherClient.emit(events.join, msgInput.room);
-                  });
+          anotherClient.on(events.connect, () => {
+            anotherClient.emit(events.join, msgInput.room);
+          });
 
-                  anotherClient.on(events.join, () => {
-                    anotherClient.emit(events.msg, msgInput);
-                  });
-                });
+          anotherClient.on(events.join, () => {
+            anotherClient.emit(events.msg, msgInput);
+          });
+        });
     });
 
     this.client.on(events.msg, (msg) => {
@@ -312,7 +311,6 @@ describe('chat server', () => {
       password: 'jenni',
     };
 
-
     const msgInput = {
       to: defaultUser.username,
       msg: 'msg',
@@ -320,21 +318,21 @@ describe('chat server', () => {
 
     this.client.on(events.connect, (data) => {
       request(serverUrl)
-                .post(apiUrls.register)
-                .send(newUser)
-                .expect(200)
-                .end((err, res) => {
-                  const cookie = getSessionIdFromCookie(res);
+        .post(apiUrls.register)
+        .send(newUser)
+        .expect(200)
+        .end((err, res) => {
+          const cookie = getSessionIdFromCookie(res);
 
-                  const anotherClient = io.connect(serverUrl, {
-                    query: `session_id=${cookie}`,
-                  });
+          const anotherClient = io.connect(serverUrl, {
+            query: `session_id=${cookie}`,
+          });
 
-                  anotherClient.on(events.connect, () => {
-                    anotherClient.emit(events.privateMsg, msgInput);
-                    anotherClient.disconnect();
-                  });
-                });
+          anotherClient.on(events.connect, () => {
+            anotherClient.emit(events.privateMsg, msgInput);
+            anotherClient.disconnect();
+          });
+        });
     });
 
     this.client.on(events.privateMsg, (msg) => {

@@ -8,11 +8,7 @@ injectTapEventPlugin();
 
 class AppContainer extends Component {
   render() {
-    return (
-      <MuiThemeProvider>
-        {this.props.children}
-      </MuiThemeProvider>
-    );
+    return <MuiThemeProvider>{this.props.children}</MuiThemeProvider>;
   }
 }
 

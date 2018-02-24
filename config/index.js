@@ -1,6 +1,6 @@
 module.exports = {
-    session: {
-        secret: 'keyboard cat',
-    },
-    defaultChannel: 'general',
-}
+  session: {
+    secret: 'keyboard cat',
+  },
+  defaultChannel: 'general',
+};

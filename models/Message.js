@@ -1,5 +1,3 @@
-
-
 const mongoose = require('mongoose');
 
 const messageSchema = mongoose.Schema({
@@ -22,10 +20,10 @@ const messageSchema = mongoose.Schema({
 });
 
 messageSchema.pre('save', function (next) {
-    this.channel = this.channel.toLowerCase();
-    this.user = this.user.toLowerCase();
+  this.channel = this.channel.toLowerCase();
+  this.user = this.user.toLowerCase();
 
-    next();
+  next();
 });
 
 module.exports = mongoose.model('Message', messageSchema);
