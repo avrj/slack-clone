@@ -21,13 +21,15 @@ module.exports = {
     ],
 
     module: {
-        loaders: [
+        rules: [
             {
                 test: /\.js$/,
-                loaders: [`babel?${JSON.stringify({
-                    cacheDirectory: true,
-                    presets: ['es2015', 'stage-0', 'react'],
-                })}`],
+                use: {
+                    loader: 'babel-loader',
+                     options: {
+                        presets: ['es2015', 'stage-0', 'react']
+                     },
+                },
                 exclude: /node_modules/,
             },
             {
