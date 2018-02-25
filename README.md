@@ -1,4 +1,4 @@
-** I'm not going to maintain this repo anymore, but feel free to fork or create PRs **
+** I'm not going to actively maintain this repo anymore (since Feb 2017), but feel free to fork the project or create PRs **
 
 
 
