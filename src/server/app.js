@@ -43,11 +43,13 @@ app.use(bodyParser.urlencoded({ extended: true }))
 
 const sessionStore = new MongoStore({ mongooseConnection: mongoose.connection })
 
+const secret = process.env.SESSION_SECRET || config.session.secret
+
 app.use(
   session({
     key: 'express.sid',
     store: sessionStore,
-    secret: process.env.SESSION_SECRET || config.session.secret,
+    secret,
     cookie: { httpOnly: false },
   })
 )
@@ -97,7 +99,7 @@ app.get('*', (req, res) => {
 io.use(
   passportSocketIo.authorize({
     key: 'express.sid',
-    secret: config.session.secret,
+    secret,
     store: sessionStore,
     success: (data, accept) => {
       accept()

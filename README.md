@@ -1,7 +1,18 @@
-** I'm not going to maintain this repo anymore, but feel free to fork or create PRs **
+** I'm not going to actively maintain this repo anymore (since Feb 2017), but feel free to fork the project or create PRs **
 
-
-
+Possible future improvements:
+* Separate the repository to front & back repositories from the current monolithic approach
+* Add state container such as [Redux](https://redux.js.org)
+* Refactor both server & client side code
+* Add front end specific tests with e.g. (Jest)[https://facebook.github.io/jest/], [enzyme](http://airbnb.io/enzyme/)
+* Get rid of mutable stuff
+* Change `bcrypt-nodejs` (legacy which is not maintained anymore) to [node.bcrypt.js](https://github.com/kelektiv/node.bcrypt.js)
+* Considering using CSS-in-JS, e.g. [styled-components](https://styled-components.com)
+* Optimization
+  * More advanced webpack config
+  * Prerendering
+  * Code splitting
+  
 [![Build Status](https://travis-ci.org/avrj/slack-clone.svg?branch=master)](https://travis-ci.org/avrj/slack-clone) [![codecov](https://codecov.io/gh/avrj/slack-clone/branch/master/graph/badge.svg?token=ettfcfGuOA)](https://codecov.io/gh/avrj/slack-clone)
 
 # Slack clone - A real time chat service
