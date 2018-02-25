@@ -3846,7 +3846,7 @@ https-proxy-agent@^1.0.0:
     debug "2"
     extend "3"
 
-husky@^0.14.3:
+husky@0.14.3:
   version "0.14.3"
   resolved "https://registry.yarnpkg.com/husky/-/husky-0.14.3.tgz#c69ed74e2d2779769a17ba8399b54ce0b63c12c3"
   dependencies:
@@ -4695,7 +4695,7 @@ levn@^0.3.0, levn@~0.3.0:
     prelude-ls "~1.1.2"
     type-check "~0.3.2"
 
-lint-staged@^7.0.0:
+lint-staged@7.0.0:
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/lint-staged/-/lint-staged-7.0.0.tgz#57926c63201e7bd38ca0576d74391efa699b4a9d"
   dependencies:
@@ -6321,7 +6321,7 @@ prettier-eslint@^8.1.1:
     typescript "^2.5.1"
     typescript-eslint-parser "^11.0.0"
 
-prettier-standard@^8.0.0:
+prettier-standard@8.0.0:
   version "8.0.0"
   resolved "https://registry.yarnpkg.com/prettier-standard/-/prettier-standard-8.0.0.tgz#ac37941efb399b2bfc2ea6f725e13bc79b44d550"
   dependencies:
