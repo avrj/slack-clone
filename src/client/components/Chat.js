@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import io from 'socket.io-client'
-import { browserHistory } from 'react-router'
+import { withRouter } from 'react-router-dom'
 import { withCookies } from 'react-cookie'
 import Drawer from 'material-ui/Drawer'
 import AppBar from 'material-ui/AppBar'
@@ -180,15 +180,11 @@ class App extends Component {
     responseJson,
     channels
   ) => {
-    const messages = []
-
-    for (let i = 0; i < responseJson.length; i++) {
-      messages.push({
-        date: responseJson[i].timestamp,
-        user: responseJson[i].user,
-        msg: responseJson[i].text,
-      })
-    }
+    const messages = responseJson.map(({ timestamp, user, text }) => ({
+      date: timestamp,
+      user,
+      msg: text,
+    }))
 
     const activeChannel = localStorage.getItem(
       this.persistentActiveChannelIdentifier
@@ -217,7 +213,7 @@ class App extends Component {
 
   _handleError = error => {
     if (error == 'Unauthorized') {
-      browserHistory.push({
+      this.props.history.push({
         pathname: '/',
         state: {
           message: 'Please sign in to enter the chat.',
@@ -253,15 +249,11 @@ class App extends Component {
   }
 
   handleJoinedChannelMessages = (responseJson, channel) => {
-    const messages = []
-
-    for (let i = 0; i < responseJson.length; i++) {
-      messages.push({
-        date: responseJson[i].timestamp,
-        user: responseJson[i].user,
-        msg: responseJson[i].text,
-      })
-    }
+    const messages = responseJson.map(({ timestamp, user, text }) => ({
+      date: timestamp,
+      user,
+      msg: text,
+    }))
 
     const channels = JSON.parse(JSON.stringify(this.state.channels))
 
@@ -508,15 +500,11 @@ class App extends Component {
   }
 
   handleActiveChannelMessages = (responseJson, channel) => {
-    const messages = []
-
-    for (let i = 0; i < responseJson.length; i++) {
-      messages.push({
-        date: responseJson[i].timestamp,
-        user: responseJson[i].user,
-        msg: responseJson[i].text,
-      })
-    }
+    const messages = responseJson.map(({ timestamp, user, text }) => ({
+      date: timestamp,
+      user,
+      msg: text,
+    }))
 
     const channels = JSON.parse(JSON.stringify(this.state.channels))
 
@@ -579,7 +567,7 @@ class App extends Component {
         Object.assign({}, this.initialState, { disconnectedByClient: true })
       )
 
-      browserHistory.push({
+      this.props.history.push({
         pathname: '/',
         state: {
           message: 'You are now signed out.',
@@ -728,4 +716,4 @@ class App extends Component {
   }
 }
 
-export default withCookies(App)
+export default withRouter(withCookies(App))
