@@ -1,5 +1,5 @@
-const bcrypt = require('bcrypt-nodejs');
-const mongoose = require('mongoose');
+const bcrypt = require('bcrypt-nodejs')
+const mongoose = require('mongoose')
 
 const UserSchema = mongoose.Schema({
   local: {
@@ -22,20 +22,20 @@ const UserSchema = mongoose.Schema({
       default: false,
     },
   },
-});
+})
 
 UserSchema.pre('save', function (next) {
-  this.local.username = this.local.username.toLowerCase();
+  this.local.username = this.local.username.toLowerCase()
 
-  next();
-});
+  next()
+})
 
 UserSchema.methods.generateHash = function (password) {
-  return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
-};
+  return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null)
+}
 
 UserSchema.methods.validPassword = function (password) {
-  return bcrypt.compareSync(password, this.local.password);
-};
+  return bcrypt.compareSync(password, this.local.password)
+}
 
-module.exports = mongoose.model('User', UserSchema);
+module.exports = mongoose.model('User', UserSchema)

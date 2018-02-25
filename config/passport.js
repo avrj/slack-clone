@@ -1,5 +1,5 @@
-const LocalStrategy = require('passport-local').Strategy;
-const User = require('../models/User');
+const LocalStrategy = require('passport-local').Strategy
+const User = require('../models/User')
 
 module.exports = function (config, passport) {
   passport.use(
@@ -11,28 +11,31 @@ module.exports = function (config, passport) {
         passReqToCallback: true,
       },
       (req, username, password, done) => {
-        User.findOne({ 'local.username': username.toLowerCase() }, (err, user) => {
-          if (err) {
-            return done(err);
-          }
-          if (user) {
-            return done(null, false);
-          }
-          const newUser = new User();
-
-          newUser.local.username = username.toLowerCase();
-          newUser.local.password = newUser.generateHash(password);
-          newUser.local.channels = [config.defaultChannel.toLowerCase()];
-          newUser.save((err, user) => {
+        User.findOne(
+          { 'local.username': username.toLowerCase() },
+          (err, user) => {
             if (err) {
-              throw err;
+              return done(err)
             }
-            return done(null, newUser);
-          });
-        });
-      },
-    ),
-  );
+            if (user) {
+              return done(null, false)
+            }
+            const newUser = new User()
+
+            newUser.local.username = username.toLowerCase()
+            newUser.local.password = newUser.generateHash(password)
+            newUser.local.channels = [config.defaultChannel.toLowerCase()]
+            newUser.save((err, user) => {
+              if (err) {
+                throw err
+              }
+              return done(null, newUser)
+            })
+          }
+        )
+      }
+    )
+  )
 
   passport.use(
     'local-login',
@@ -43,19 +46,22 @@ module.exports = function (config, passport) {
         passReqToCallback: true,
       },
       (req, username, password, done) => {
-        User.findOne({ 'local.username': username.toLowerCase() }, (err, user) => {
-          if (err) {
-            return done(err);
+        User.findOne(
+          { 'local.username': username.toLowerCase() },
+          (err, user) => {
+            if (err) {
+              return done(err)
+            }
+            if (!user) {
+              return done(null, false)
+            }
+            if (!user.validPassword(password)) {
+              return done(null, false)
+            }
+            return done(null, user)
           }
-          if (!user) {
-            return done(null, false);
-          }
-          if (!user.validPassword(password)) {
-            return done(null, false);
-          }
-          return done(null, user);
-        });
-      },
-    ),
-  );
-};
+        )
+      }
+    )
+  )
+}

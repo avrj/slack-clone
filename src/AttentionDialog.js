@@ -1,19 +1,16 @@
-import React, { Component } from 'react';
-import Dialog from 'material-ui/Dialog';
+import React from 'react'
+import Dialog from 'material-ui/Dialog'
+import { string } from 'prop-types'
 
-class AttentionDialog extends Component {
-  render() {
-    return (
-      <Dialog title={this.props.title} modal open>
-        {this.props.text}
-      </Dialog>
-    );
-  }
-}
+const AttentionDialog = ({ title, text }) => (
+  <Dialog title={title} modal open>
+    {text}
+  </Dialog>
+)
 
 AttentionDialog.propTypes = {
-  title: React.PropTypes.string.isRequired,
-  text: React.PropTypes.string.isRequired,
-};
+  title: string.isRequired,
+  text: string.isRequired,
+}
 
-export default AttentionDialog;
+export default AttentionDialog

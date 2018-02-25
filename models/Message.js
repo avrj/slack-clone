@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const messageSchema = mongoose.Schema({
   timestamp: {
@@ -17,13 +17,13 @@ const messageSchema = mongoose.Schema({
     type: mongoose.Schema.Types.String,
     required: true,
   },
-});
+})
 
 messageSchema.pre('save', function (next) {
-  this.channel = this.channel.toLowerCase();
-  this.user = this.user.toLowerCase();
+  this.channel = this.channel.toLowerCase()
+  this.user = this.user.toLowerCase()
 
-  next();
-});
+  next()
+})
 
-module.exports = mongoose.model('Message', messageSchema);
+module.exports = mongoose.model('Message', messageSchema)

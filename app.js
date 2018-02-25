@@ -47,7 +47,7 @@ app.use(session({
     key: 'express.sid',
     store: sessionStore,
     secret: process.env.SESSION_SECRET || config.session.secret,
-    cookie: {httpOnly: false}
+    cookie: {httpOnly: false},
 }));
 
 app.use(passport.initialize());
@@ -71,7 +71,7 @@ if (process.env.NODE_ENV == 'development') {
     const compiler = webpack(webpackConfig);
 
     app.use(require('webpack-dev-middleware')(compiler, {
-        publicPath: webpackConfig.output.publicPath
+        publicPath: webpackConfig.output.publicPath,
     }));
 
     app.use(require('webpack-hot-middleware')(compiler));
@@ -121,5 +121,6 @@ if (process.env.NODE_ENV !== 'test') {
 
 module.exports = {
     http,
+    app,
     mockgoose: process.env.NODE_ENV == 'test' ? mockgoose : null,
 };
