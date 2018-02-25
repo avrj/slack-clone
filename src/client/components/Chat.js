@@ -53,16 +53,20 @@ class App extends Component {
       query: `session_id=${authCookie}`,
     })
 
-    this.client.on(events.connect, this._handleConnect)
-    this.client.on(events.disconnect, this._handleDisconnect)
-    this.client.on(events.error, this._handleError)
-    this.client.on(events.online, this._handleOnline)
-    this.client.on(events.offline, this._handleOffline)
-    this.client.on(events.join, this._handleJoin)
-    this.client.on(events.leave, this._handleLeave)
-    this.client.on(events.msg, this._handleMsg)
-    this.client.on(events.privateMsg, this._handlePrivateMsg)
-    this.client.on(events.ownPrivateMsg, this._handleOwnPrivateMsg)
+    const eventHandlers = [
+      { event: events.connect, handler: this._handleConnect },
+      { event: events.disconnect, handler: this._handleDisconnect },
+      { event: events.error, handler: this._handleError },
+      { event: events.online, handler: this._handleOnline },
+      { event: events.offline, handler: this._handleOffline },
+      { event: events.join, handler: this._handleJoin },
+      { event: events.leave, handler: this._handleLeave },
+      { event: events.msg, handler: this._handleMsg },
+      { event: events.privateMsg, handler: this._handlePrivateMsg },
+      { event: events.ownPrivateMsg, handler: this._handleOwnPrivateMsg },
+    ]
+
+    eventHandlers.map(({ event, handler }) => this.client.on(event, handler))
   }
 
   _handleConnect = () => {
