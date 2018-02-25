@@ -121,5 +121,6 @@ if (process.env.NODE_ENV !== 'test') {
 
 module.exports = {
     http,
+    app,
     mockgoose: process.env.NODE_ENV == 'test' ? mockgoose : null,
 };
