@@ -8,7 +8,7 @@ const chai = require('chai'),
 const request = require('supertest')
 const io = require('socket.io-client')
 
-const events = require('../events')
+const events = require('../../common/events')
 
 const models = require('../models')
 
