@@ -1,6 +1,6 @@
 const app = require('../app')
 
-const server = app.http
+const server = app.app
 const mockgoose = app.mockgoose
 const chai = require('chai'),
   expect = chai.expect,
@@ -8,10 +8,7 @@ const chai = require('chai'),
 const request = require('supertest')
 const io = require('socket.io-client')
 
-const events = require('../events')
-
-const serverPort = 3001
-const serverUrl = `http://localhost:${serverPort}`
+const events = require('../../common/events')
 
 function getSessionIdFromCookie (res) {
   let cookie = res.headers['set-cookie']
@@ -33,17 +30,19 @@ const defaultUser = (user = {
   password: 'mikko',
 })
 
+const serverPort = 3001
+
 describe('chat server', () => {
   beforeEach(function (done) {
     server.listen(serverPort, () => {
-      request(serverUrl)
+      request(server)
         .post(apiUrls.register)
         .send(defaultUser)
         .expect(200)
         .end((err, res) => {
           this.cookie = getSessionIdFromCookie(res)
 
-          this.client = io.connect(serverUrl, {
+          this.client = io.connect(server, {
             query: `session_id=${this.cookie}`,
           })
 
@@ -66,7 +65,7 @@ describe('chat server', () => {
   })
 
   it('should not be able to connect without session id', done => {
-    this.client = io.connect(serverUrl)
+    this.client = io.connect(server)
 
     this.client.on(events.error, data => {
       expect(data).to.equal('Unauthorized')
@@ -77,7 +76,7 @@ describe('chat server', () => {
   })
 
   it('should not be able to connect with invalid session id', done => {
-    this.client = io.connect(serverUrl, {
+    this.client = io.connect(server, {
       query: 'session_id=invalid',
     })
 
@@ -96,14 +95,14 @@ describe('chat server', () => {
     }
 
     this.client.on(events.connect, data => {
-      request(serverUrl)
+      request(server)
         .post(apiUrls.register)
         .send(newUser)
         .expect(200)
         .end((err, res) => {
           const cookie = getSessionIdFromCookie(res)
 
-          const anotherClient = io.connect(serverUrl, {
+          const anotherClient = io.connect(server, {
             query: `session_id=${cookie}`,
           })
 
@@ -128,14 +127,14 @@ describe('chat server', () => {
     }
 
     this.client.on(events.connect, data => {
-      request(serverUrl)
+      request(server)
         .post(apiUrls.register)
         .send(newUser)
         .expect(200)
         .end((err, res) => {
           const cookie = getSessionIdFromCookie(res)
 
-          const anotherClient = io.connect(serverUrl, {
+          const anotherClient = io.connect(server, {
             query: `session_id=${cookie}`,
           })
 
@@ -172,14 +171,14 @@ describe('chat server', () => {
     const newChannel = 'channelthatdoesntexist'
 
     this.client.on(events.connect, data => {
-      request(serverUrl)
+      request(server)
         .post(apiUrls.authenticate)
         .send(defaultUser)
         .expect(200)
         .end((err, res) => {
           const cookie = getSessionIdFromCookie(res)
 
-          const anotherClient = io.connect(serverUrl, {
+          const anotherClient = io.connect(server, {
             query: `session_id=${cookie}`,
           })
 
@@ -228,14 +227,14 @@ describe('chat server', () => {
     })
 
     this.client.on(events.join, channel => {
-      request(serverUrl)
+      request(server)
         .post(apiUrls.authenticate)
         .send(defaultUser)
         .expect(200)
         .end((err, res) => {
           const cookie = getSessionIdFromCookie(res)
 
-          const anotherClient = io.connect(serverUrl, {
+          const anotherClient = io.connect(server, {
             query: `session_id=${cookie}`,
           })
 
@@ -273,14 +272,14 @@ describe('chat server', () => {
     })
 
     this.client.on(events.join, channel => {
-      request(serverUrl)
+      request(server)
         .post(apiUrls.register)
         .send(newUser)
         .expect(200)
         .end((err, res) => {
           const cookie = getSessionIdFromCookie(res)
 
-          const anotherClient = io.connect(serverUrl, {
+          const anotherClient = io.connect(server, {
             query: `session_id=${cookie}`,
           })
 
@@ -317,14 +316,14 @@ describe('chat server', () => {
     }
 
     this.client.on(events.connect, data => {
-      request(serverUrl)
+      request(server)
         .post(apiUrls.register)
         .send(newUser)
         .expect(200)
         .end((err, res) => {
           const cookie = getSessionIdFromCookie(res)
 
-          const anotherClient = io.connect(serverUrl, {
+          const anotherClient = io.connect(server, {
             query: `session_id=${cookie}`,
           })
 

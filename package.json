@@ -4,18 +4,18 @@
   "description": "A Slack clone made with React.JS, Socket.io and Node.js",
   "main": "index.js",
   "scripts": {
-    "heroku-postbuild": "webpack -p --config ./webpack.config.prod.js",
-    "start": "node app.js",
+    "heroku-postbuild": "webpack -p --config ./webpack/webpack.config.prod.js",
+    "start": "node ./src/server/app.js",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "test": "NODE_ENV=test mocha -R spec",
-    "coverage": "NODE_ENV=test istanbul cover _mocha -- -R spec",
-    "format": "prettier-standard '{src,test,routes,models,config}/**/*.js'",
+    "test": "NODE_ENV=test mocha -R spec ./src/server/__tests__/*.js",
+    "coverage": "NODE_ENV=test istanbul cover _mocha -- -R spec ./src/server/__tests__/*.js",
+    "format": "prettier-standard 'src/**/*.js'",
     "precommit": "lint-staged"
   },
   "lint-staged": {
     "linters": {
-      "{src,test,routes,models,config}/**/*.js": [
+      "src/**/*.js": [
         "prettier-standard",
         "git add"
       ]

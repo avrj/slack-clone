@@ -1,38 +1,35 @@
-var path = require('path');
-var webpack = require('webpack');
+const webpack = require('webpack');
+const path = require('path');
 
 module.exports = {
-    devtool: 'inline-source-map',
-    devServer: {
-      contentBase: './dist',
-     hot: true
-    },
-    entry: 
-        ['babel-polyfill', 'react-hot-loader/patch', path.join(__dirname, 'src', 'index.js')],
+    devtool: 'source-map',
+    entry: [
+        path.join(__dirname, '..', 'src', 'client', 'index.js')
+    ],
+
     output: {
-        path: path.join(__dirname, 'dist'),
+        path: path.join(__dirname, '..',  'dist'),
         filename: 'bundle.js',
         publicPath: '/'
     },
     plugins: [
-	new webpack.NamedModulesPlugin(),
-        new webpack.HotModuleReplacementPlugin(),
-        new webpack.NoEmitOnErrorsPlugin(),
         new webpack.DefinePlugin({
             'process.env': {
-                NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development')
+                NODE_ENV: JSON.stringify('production')
             }
         })
     ],
+
     module: {
         rules: [
             {
                 test: /\.js$/,
-		loader: 'babel-loader',
-query: {
-          presets: ["es2015", "stage-0", "react"],
-          plugins: ["react-hot-loader/babel"],
-},
+                use: {
+                    loader: 'babel-loader',
+                     options: {
+                        presets: ['es2015', 'stage-0', 'react']
+                     },
+                },
                 exclude: /node_modules/,
             },
             {
@@ -63,6 +60,6 @@ query: {
                 test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
                 loader: 'url?limit=10000&mimetype=image/svg+xml',
             },
-        ]
-    }
+        ],
+    },
 };
