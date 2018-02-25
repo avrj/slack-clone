@@ -1,21 +1,21 @@
-import React, { Component } from 'react';
+import React, { Component } from 'react'
 
-const Sidebar = require('react-sidebar').default;
+const Sidebar = require('react-sidebar').default
 
 class Layout extends Component {
-  constructor() {
-    super();
+  constructor () {
+    super()
 
     this.state = {
       open: false,
-    };
+    }
   }
 
-  onSetOpen = (open) => {
-    this.setState({ open });
-  };
+  onSetOpen = open => {
+    this.setState({ open })
+  }
 
-  render() {
+  render () {
     return (
       <div>
         <Sidebar
@@ -38,8 +38,8 @@ class Layout extends Component {
           <b onClick={() => this.setState({ open: true })}>Mains content</b>
         </Sidebar>
       </div>
-    );
+    )
   }
 }
 
-export default Layout;
+export default Layout

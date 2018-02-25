@@ -1,27 +1,18 @@
-import React, { Component } from 'react';
-import AppContainer from './AppContainer';
-import Chat from './Chat';
-import Login from './Login';
-import Register from './Register';
-import { Router, Route, IndexRoute, browserHistory } from 'react-router';
-import Layout from './Layout';
+import React from 'react'
+import Chat from './Chat'
+import Login from './Login'
+import Register from './Register'
+import { BrowserRouter as Router, Route } from 'react-router-dom'
+import AppContainer from './AppContainer'
 
-class AppRouter extends Component {
-  render() {
-    const routes = (
-      <Route path="/" component={AppContainer}>
-        <IndexRoute component={Login} />
-        <Route path="chat" component={Chat} />
-        <Route path="register" component={Register} />
-      </Route>
-    );
+const AppRouter = () => (
+  <Router>
+    <AppContainer>
+      <Route exact path='/' component={Login} />
+      <Route path='/chat' component={Chat} />
+      <Route path='/register' component={Register} />
+    </AppContainer>
+  </Router>
+)
 
-    return (
-      <Router key={Math.random()} history={browserHistory}>
-        {routes}
-      </Router>
-    );
-  }
-}
-
-export default AppRouter;
+export default AppRouter

@@ -1,13 +1,14 @@
-import React, { Component } from 'react';
-import UserListItem from './UserListItem';
+import React, { Component } from 'react'
+import UserListItem from './UserListItem'
+import { string, object, func } from 'prop-types'
 
 class UserList extends Component {
-  render() {
+  render () {
     const renderListItems = () => {
-      const { users } = this.props;
+      const { users } = this.props
 
-      return Object.keys(users).map((user) => {
-        const you = user === this.props.loggedUser ? ' (you)' : '';
+      return Object.keys(users).map(user => {
+        const you = user === this.props.loggedUser ? ' (you)' : ''
 
         return (
           <UserListItem
@@ -15,33 +16,33 @@ class UserList extends Component {
             online={users[user].online}
             hasNewMessages={users[user].hasNewMessages}
             key={user}
-            onTouchTap={() => this.props.setActiveUser(user)}
+            onClick={() => this.props.setActiveUser(user)}
             user={user + you}
           />
-        );
-      });
-    };
+        )
+      })
+    }
 
     return (
       <div>
-        <div className="DrawerListTitle">{this.props.title}</div>
+        <div className='DrawerListTitle'>{this.props.title}</div>
 
         <div>{renderListItems()}</div>
       </div>
-    );
+    )
   }
 }
 
 UserList.propTypes = {
-  title: React.PropTypes.string.isRequired,
-  activeUser: React.PropTypes.string,
-  loggedUser: React.PropTypes.string.isRequired,
-  users: React.PropTypes.object.isRequired,
-  setActiveUser: React.PropTypes.func.isRequired,
-};
+  title: string.isRequired,
+  activeUser: string,
+  loggedUser: string.isRequired,
+  users: object.isRequired,
+  setActiveUser: func.isRequired,
+}
 
 UserList.defaultProps = {
   activeUser: null,
-};
+}
 
-export default UserList;
+export default UserList

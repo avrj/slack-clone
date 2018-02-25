@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const channelSchema = mongoose.Schema({
   name: {
@@ -6,12 +6,12 @@ const channelSchema = mongoose.Schema({
     unique: true,
     required: true,
   },
-});
+})
 
 channelSchema.pre('save', function (next) {
-  this.name = this.name.toLowerCase();
+  this.name = this.name.toLowerCase()
 
-  next();
-});
+  next()
+})
 
-module.exports = mongoose.model('Channel', channelSchema);
+module.exports = mongoose.model('Channel', channelSchema)

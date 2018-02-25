@@ -1,15 +1,15 @@
-import React, { Component } from 'react';
-import injectTapEventPlugin from 'react-tap-event-plugin';
-import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import React from 'react'
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
+import { node } from 'prop-types'
+import { CookiesProvider } from 'react-cookie'
 
-// Needed for onTouchTap
-// http://stackoverflow.com/a/34015469/988941
-injectTapEventPlugin();
+const AppContainer = ({ children }) => (
+  <MuiThemeProvider>
+    <CookiesProvider>{children}</CookiesProvider>
+  </MuiThemeProvider>
+)
 
-class AppContainer extends Component {
-  render() {
-    return <MuiThemeProvider>{this.props.children}</MuiThemeProvider>;
-  }
+AppContainer.propTypes = {
+  children: node.isRequired,
 }
-
-export default AppContainer;
+export default AppContainer

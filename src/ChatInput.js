@@ -1,50 +1,47 @@
-import React, { Component } from 'react';
+import React, { Component } from 'react'
+import { func } from 'prop-types'
 
 class ChatInput extends Component {
-  constructor() {
-    super();
-
-    this.state = {
-      msgToSend: '',
-    };
+  state = {
+    msgToSend: '',
   }
 
-  componentDidMount() {
-    this.msgInput.focus();
+  componentDidMount () {
+    this.msgInput.focus()
   }
 
-  sendMsg = (e) => {
-    e.preventDefault();
+  sendMsg = e => {
+    e.preventDefault()
 
-    this.props.sendMsg(this.state.msgToSend);
+    this.props.sendMsg(this.state.msgToSend)
 
-    this.setState({ msgToSend: '' });
+    this.setState({ msgToSend: '' })
 
-    this.msgInput.focus();
-  };
+    this.msgInput.focus()
+  }
 
-  render() {
+  render () {
     return (
       <div style={{ position: 'fixed', bottom: '0' }}>
         <form onSubmit={this.sendMsg}>
           <input
             style={{ width: '100vw' }}
-            ref={(input) => {
-              this.msgInput = input;
+            ref={input => {
+              this.msgInput = input
             }}
-            type="text"
+            type='text'
             value={this.state.msgToSend}
             onChange={e => this.setState({ msgToSend: e.target.value })}
-            placeholder="Type your message"
+            placeholder='Type your message'
           />
         </form>
       </div>
-    );
+    )
   }
 }
 
 ChatInput.propTypes = {
-  sendMsg: React.PropTypes.func.isRequired,
-};
+  sendMsg: func.isRequired,
+}
 
-export default ChatInput;
+export default ChatInput

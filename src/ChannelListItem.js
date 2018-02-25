@@ -1,31 +1,30 @@
-import React from 'react';
-import classNames from 'classnames';
-import MenuItem from 'material-ui/MenuItem';
+import React from 'react'
+import classNames from 'classnames'
+import MenuItem from 'material-ui/MenuItem'
+import { func, string, bool } from 'prop-types'
 
-const ChannelListItem = ({
-  active, hasNewMessages, onTouchTap, title,
-}) => (
+const ChannelListItem = ({ active, hasNewMessages, onClick, title }) => (
   <MenuItem
     className={classNames({
       MenuItemActive: active,
       HasNewMessages: hasNewMessages,
     })}
-    onTouchTap={onTouchTap}
+    onClick={onClick}
   >
     # {title}
   </MenuItem>
-);
+)
 
 ChannelListItem.propTypes = {
-  onTouchTap: React.PropTypes.func.isRequired,
-  title: React.PropTypes.string.isRequired,
-  active: React.PropTypes.bool,
-  hasNewMessages: React.PropTypes.bool,
-};
+  onClick: func.isRequired,
+  title: string.isRequired,
+  active: bool,
+  hasNewMessages: bool,
+}
 
 ChannelListItem.defaultProps = {
   active: false,
   hasNewMessages: false,
-};
+}
 
-export default ChannelListItem;
+export default ChannelListItem
