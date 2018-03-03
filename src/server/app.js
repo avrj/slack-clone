@@ -13,6 +13,7 @@ const passport = require('passport')
 const compression = require('compression')
 const path = require('path')
 const mockgoose = require('mockgoose')
+const debug = require('debug')('server')
 
 const config = require('./config/')
 const passportConfig = require('./config/passport')(config, passport)
@@ -21,54 +22,45 @@ const routes = require('./routes')
 process.env.NODE_ENV = process.env.NODE_ENV || 'development'
 
 if (process.env.NODE_ENV == 'test') {
-  console.log('database mocked')
+  debug('database mocked')
 
   mockgoose(mongoose).then(() => {
     mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/chat_dev')
   })
 } else {
-  console.log('database not mocked')
+  debug('database not mocked')
 
   mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/chat_dev')
 }
-
-app.use(helmet())
-
-app.use(logger('dev'))
-app.use(compression())
-
-app.use(bodyParser.json())
-
-app.use(bodyParser.urlencoded({ extended: true }))
 
 const sessionStore = new MongoStore({ mongooseConnection: mongoose.connection })
 
 const secret = process.env.SESSION_SECRET || config.session.secret
 
-app.use(
-  session({
-    key: 'express.sid',
-    store: sessionStore,
-    secret,
-    cookie: { httpOnly: false },
-  })
-)
+const sessionSettings = {
+  key: 'express.sid',
+  store: sessionStore,
+  secret,
+  cookie: { httpOnly: false },
+}
 
-app.use(passport.initialize())
-app.use(passport.session())
+const middlewares = [
+  helmet(),
+  logger('dev'),
+  compression(),
+  bodyParser.json(),
+  bodyParser.urlencoded({ extended: true }),
+  session(sessionSettings),
+  passport.initialize(),
+  passport.session(),
+]
 
-passport.serializeUser((user, done) => {
-  done(null, user.local.username)
-})
-
-passport.deserializeUser((username, done) => {
-  done(null, username)
-})
+middlewares.forEach(middleware => app.use(middleware))
 
 app.use('/', routes)
 
 if (process.env.NODE_ENV == 'development') {
-  console.log('Webpack dev middleware enabled')
+  debug('Webpack dev middleware enabled')
 
   const webpack = require('webpack')
   const webpackConfig = require('../../webpack/webpack.config.dev.js')
@@ -82,7 +74,7 @@ if (process.env.NODE_ENV == 'development') {
 
   app.use(require('webpack-hot-middleware')(compiler))
 } else {
-  console.log('Serving production bundle')
+  debug('Serving production bundle')
 
   app.get('/bundle.js', (req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'dist', 'bundle.js'))
@@ -106,11 +98,11 @@ io.use(
     },
     fail: (data, message, error, accept) => {
       if (error) {
-        console.log(`error: ${message}`)
+        debug(`error: ${message}`)
 
         accept(new Error('Unauthorized'))
       } else {
-        console.log(`ok: ${message}`)
+        debug(`ok: ${message}`)
         accept(new Error('Unauthorized'))
       }
     },
@@ -123,7 +115,7 @@ const port = process.env.PORT || 3000
 
 if (process.env.NODE_ENV !== 'test') {
   http.listen(port, () => {
-    console.log(`listening on *:${port}`)
+    debug(`listening on *:${port}`)
   })
 }
 

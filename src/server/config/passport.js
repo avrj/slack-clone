@@ -2,6 +2,14 @@ const LocalStrategy = require('passport-local').Strategy
 const User = require('../models/User')
 
 module.exports = function (config, passport) {
+  passport.serializeUser((user, done) => {
+    done(null, user.local.username)
+  })
+
+  passport.deserializeUser((username, done) => {
+    done(null, username)
+  })
+
   passport.use(
     'local-signup',
     new LocalStrategy(
