@@ -25,14 +25,14 @@ class ChatInput extends Component {
       <div style={{ position: 'fixed', bottom: '0' }}>
         <form onSubmit={this.sendMsg}>
           <input
-            style={{ width: '100vw' }}
+            style={{ width: '96vw', height: '3vw', margin: '20px 20px' }}
             ref={input => {
               this.msgInput = input
             }}
             type='text'
             value={this.state.msgToSend}
             onChange={e => this.setState({ msgToSend: e.target.value })}
-            placeholder='Type your message'
+            placeholder='Type your message & press Enter to send.'
           />
         </form>
       </div>

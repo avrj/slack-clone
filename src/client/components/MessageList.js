@@ -39,6 +39,7 @@ class MessageList extends Component {
         style={{
           position: 'absolute',
           top: '60px',
+          left: '20px',
           bottom: '20px',
           paddingLeft: '10',
         }}
