@@ -1,6 +1,6 @@
 const app = require('../app')
 
-const server = app.app
+const server = app.http
 const mockgoose = app.mockgoose
 const chai = require('chai'),
   expect = chai.expect,
@@ -31,18 +31,19 @@ const defaultUser = (user = {
 })
 
 const serverPort = 3001
+const ioClientEndpoint = 'http://localhost:' + serverPort
 
 describe('chat server', () => {
   beforeEach(function (done) {
     server.listen(serverPort, () => {
-      request(server)
+      request(ioClientEndpoint)
         .post(apiUrls.register)
         .send(defaultUser)
         .expect(200)
         .end((err, res) => {
           this.cookie = getSessionIdFromCookie(res)
 
-          this.client = io.connect(server, {
+          this.client = io(ioClientEndpoint, {
             query: `session_id=${this.cookie}`,
           })
 
@@ -52,6 +53,7 @@ describe('chat server', () => {
   })
 
   afterEach(done => {
+    server.close()
     mockgoose.reset(() => {
       done()
     })
@@ -65,7 +67,7 @@ describe('chat server', () => {
   })
 
   it('should not be able to connect without session id', done => {
-    this.client = io.connect(server)
+    this.client = io(ioClientEndpoint)
 
     this.client.on(events.error, data => {
       expect(data).to.equal('Unauthorized')
@@ -76,7 +78,7 @@ describe('chat server', () => {
   })
 
   it('should not be able to connect with invalid session id', done => {
-    this.client = io.connect(server, {
+    this.client = io(ioClientEndpoint, {
       query: 'session_id=invalid',
     })
 
@@ -102,7 +104,7 @@ describe('chat server', () => {
         .end((err, res) => {
           const cookie = getSessionIdFromCookie(res)
 
-          const anotherClient = io.connect(server, {
+          const anotherClient = io(ioClientEndpoint, {
             query: `session_id=${cookie}`,
           })
 
@@ -134,7 +136,7 @@ describe('chat server', () => {
         .end((err, res) => {
           const cookie = getSessionIdFromCookie(res)
 
-          const anotherClient = io.connect(server, {
+          const anotherClient = io(ioClientEndpoint, {
             query: `session_id=${cookie}`,
           })
 
@@ -178,7 +180,7 @@ describe('chat server', () => {
         .end((err, res) => {
           const cookie = getSessionIdFromCookie(res)
 
-          const anotherClient = io.connect(server, {
+          const anotherClient = io(ioClientEndpoint, {
             query: `session_id=${cookie}`,
           })
 
@@ -234,7 +236,7 @@ describe('chat server', () => {
         .end((err, res) => {
           const cookie = getSessionIdFromCookie(res)
 
-          const anotherClient = io.connect(server, {
+          const anotherClient = io(ioClientEndpoint, {
             query: `session_id=${cookie}`,
           })
 
@@ -279,7 +281,7 @@ describe('chat server', () => {
         .end((err, res) => {
           const cookie = getSessionIdFromCookie(res)
 
-          const anotherClient = io.connect(server, {
+          const anotherClient = io(ioClientEndpoint, {
             query: `session_id=${cookie}`,
           })
 
@@ -323,7 +325,7 @@ describe('chat server', () => {
         .end((err, res) => {
           const cookie = getSessionIdFromCookie(res)
 
-          const anotherClient = io.connect(server, {
+          const anotherClient = io(ioClientEndpoint, {
             query: `session_id=${cookie}`,
           })
 
