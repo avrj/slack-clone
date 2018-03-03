@@ -9,7 +9,7 @@ deploy:
     repo: avrj/slack-clone
     
 script:
-- istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec
+- npm run coverage-travis
 
 after_success:
 - codecov
