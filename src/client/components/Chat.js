@@ -21,6 +21,18 @@ import MessageList from './MessageList'
 
 const parseSessionId = authCookie => authCookie.split(':')[1].split('.')[0]
 
+const dissoc = (prop, obj) => {
+  const result = {}
+
+  for (var p in obj) {
+    result[p] = obj[p]
+  }
+
+  delete result[prop]
+
+  return result
+}
+
 class App extends Component {
   constructor (props) {
     super(props)
@@ -36,10 +48,9 @@ class App extends Component {
       activeUser: null,
       loggedUser: null,
       showDrawer: false,
-      drawerDocked: false,
-      connecting: true,
-      connected: false,
-      disconnectedByClient: false,
+      isConnecting: true,
+      isConnected: false,
+      isDisconnectedByClient: false,
       showErrorSnackbar: false,
       errorSnackbarText: '',
     }
@@ -122,6 +133,12 @@ class App extends Component {
   }
 
   handleOnConnectFetchUserChannelsResponse = responseJson => {
+    const loggedUser = localStorage.getItem(this.persistentLoggedUserIdentifier)
+
+    this.setState({ loggedUser })
+
+    const activeUser = localStorage.getItem(this.persistentActiveUserIdentifier)
+
     const channels = responseJson.local.channels.reduce(
       (previousValue, currentValue) => {
         previousValue[currentValue] = {
@@ -133,18 +150,12 @@ class App extends Component {
       {}
     )
 
-    const loggedUser = localStorage.getItem(this.persistentLoggedUserIdentifier)
-
-    this.setState({ loggedUser })
-
-    const activeUser = localStorage.getItem(this.persistentActiveUserIdentifier)
-
     if (activeUser) {
       this.setState({
         activeChannel: null,
         activeUser,
-        connected: true,
-        connecting: false,
+        isConnected: true,
+        isConnecting: false,
         channels,
       })
     } else {
@@ -194,23 +205,24 @@ class App extends Component {
       ? localStorage.getItem(this.persistentActiveChannelIdentifier)
       : Object.keys(channels)[0]
 
-    channels[activeChannel] = {
-      hasNewMessages: false,
-      earlierMessagesLoadedBefore: true,
-      messages: messages.concat(channels[activeChannel].messages),
-    }
-
     this.setState({
       activeChannel,
       activeUser: null,
-      connected: true,
-      connecting: false,
-      channels,
+      isConnected: true,
+      isConnecting: false,
+      channels: {
+        ...channels,
+        [activeChannel]: {
+          hasNewMessages: false,
+          earlierMessagesLoadedBefore: true,
+          messages: [...messages, ...channels[activeChannel].messages],
+        },
+      },
     })
   }
 
   _handleDisconnect = () => {
-    this.setState({ connected: false })
+    this.setState({ isConnected: false })
   }
 
   _handleError = error => {
@@ -257,19 +269,18 @@ class App extends Component {
       msg: text,
     }))
 
-    const channels = JSON.parse(JSON.stringify(this.state.channels))
-
-    channels[channel] = {
-      hasNewMessages: false,
-      earlierMessagesLoadedBefore: true,
-      messages,
-    }
-
-    this.setState({
-      channels,
+    this.setState(prevState => ({
+      channels: {
+        ...prevState.channels,
+        [channel]: {
+          hasNewMessages: false,
+          earlierMessagesLoadedBefore: true,
+          messages,
+        },
+      },
       activeChannel: channel,
       activeUser: null,
-    })
+    }))
 
     this.setPersistentActiveChannel(channel)
   }
@@ -281,11 +292,7 @@ class App extends Component {
 
     const channels = JSON.parse(JSON.stringify(this.state.channels))
 
-    const messages = channels[channel].messages
-
-    messages.push(msg)
-
-    channels[channel].messages = messages
+    channels[channel].messages = [...channels[channel].messages, msg]
 
     if (
       channel !== this.state.activeChannel &&
@@ -329,11 +336,7 @@ class App extends Component {
     }
 
     if (users[from]) {
-      const messages = users[from].messages
-
-      messages.push(msg)
-
-      users[from].messages = messages
+      users[from].messages = [...users[from].messages, msg]
     } else {
       users[from] = { messages: [msg] }
     }
@@ -350,25 +353,17 @@ class App extends Component {
 
     const { msg, to } = data
 
+    const msgData = {
+      date: new Date().toISOString(),
+      user: this.state.loggedUser,
+      msg,
+    }
+
     if (users[to]) {
-      const messages = users[to].messages
-
-      messages.push({
-        date: new Date().toISOString(),
-        user: this.state.loggedUser,
-        msg,
-      })
-
-      users[to].messages = messages
+      users[to].messages = [...users[to].messages, msgData]
     } else {
       users[to] = {
-        messages: [
-          {
-            date: new Date().toISOString(),
-            user: this.state.loggedUser,
-            msg,
-          },
-        ],
+        messages: [msgData],
       }
     }
 
@@ -383,7 +378,7 @@ class App extends Component {
     if (this.state.channels[channelToJoin]) {
       this.setState({ activeChannel: channelToJoin, activeUser: null })
     } else {
-      this.client.emit('join', channelToJoin)
+      this.client.emit(events.join, channelToJoin)
     }
 
     this.setState({
@@ -393,13 +388,11 @@ class App extends Component {
   }
 
   leaveChannel = () => {
-    this.client.emit('leave', this.state.activeChannel)
+    this.client.emit(events.leave, this.state.activeChannel)
   }
 
   _handleLeave = channel => {
-    const channels = JSON.parse(JSON.stringify(this.state.channels))
-
-    delete channels[channel]
+    const channels = dissoc(channel, this.state.channels)
 
     const channelNames = Object.keys(channels)
 
@@ -557,7 +550,7 @@ class App extends Component {
 
       this.removePersistentData()
 
-      this.setState({ disconnectedByClient: true })
+      this.setState({ isDisconnectedByClient: true })
 
       this.props.history.push({
         pathname: '/',
@@ -600,7 +593,16 @@ class App extends Component {
     })
   }
 
+  toggleDrawerInverted = () =>
+    this.setState(prevState => ({ showDrawer: !this.state.showDrawer }))
+
+  toggleDrawer = showDrawer => this.setState({ showDrawer })
+
+  showJoinChannelDialog = () => this.setState({ showJoinChannelDialog: true })
+
   renderChat = () => {
+    const appBarOrigin = { horizontal: 'right', vertical: 'top' }
+
     const { loggedUser, activeChannel, activeUser } = this.state
 
     let messages
@@ -613,9 +615,9 @@ class App extends Component {
         : []
     }
 
-    if (this.state.connecting) {
+    if (this.state.isConnecting) {
       return <AttentionDialog title='Connecting' text='Just a sec...' />
-    } else if (this.state.connected) {
+    } else if (this.state.isConnected) {
       return (
         <div>
           <Snackbar
@@ -630,23 +632,21 @@ class App extends Component {
           <Drawer
             docked={false}
             open={this.state.showDrawer}
-            onRequestChange={showDrawer => this.setState({ showDrawer })}
+            onRequestChange={this.toggleDrawer}
           >
             <div style={{ padding: '10' }}>
               <UserProfile loggedUser={loggedUser} />
               <ChannelList
-                showJoinChannelDialog={() =>
-                  this.setState({ showJoinChannelDialog: true })
-                }
+                showJoinChannelDialog={this.showJoinChannelDialog}
                 activeChannel={activeChannel}
-                setActiveChannel={channel => this.setActiveChannel(channel)}
+                setActiveChannel={this.setActiveChannel}
                 channels={this.state.channels}
               />
               <UserList
                 title='Users'
                 loggedUser={loggedUser}
                 activeUser={activeUser}
-                setActiveUser={user => this.setActiveUser(user)}
+                setActiveUser={this.setActiveUser}
                 users={this.state.users}
               />
             </div>
@@ -666,8 +666,8 @@ class App extends Component {
                       <MoreVertIcon />
                     </IconButton>
                   }
-                  targetOrigin={{ horizontal: 'right', vertical: 'top' }}
-                  anchorOrigin={{ horizontal: 'right', vertical: 'top' }}
+                  targetOrigin={appBarOrigin}
+                  anchorOrigin={appBarOrigin}
                 >
                   {activeChannel && (
                     <MenuItem
@@ -678,16 +678,14 @@ class App extends Component {
                   <MenuItem primaryText='Sign out' onClick={this.signOut} />
                 </IconMenu>
               }
-              onLeftIconButtonClick={() =>
-                this.setState({ showDrawer: !this.state.showDrawer })
-              }
+              onLeftIconButtonClick={this.toggleDrawerInverted}
             />
             <MessageList messages={messages} />
             <ChatInput sendMsg={this.sendMsg} />
           </div>
         </div>
       )
-    } else if (this.state.disconnectedByClient) {
+    } else if (this.state.isDisconnectedByClient) {
       return (
         <AttentionDialog
           title='Disconnected by client'
