@@ -6,7 +6,6 @@ Possible future improvements:
 * Refactor both server & client side code
 * Add front end specific tests with e.g. (Jest)[https://facebook.github.io/jest/], [enzyme](http://airbnb.io/enzyme/)
 * Get rid of mutable stuff
-* Change `bcrypt-nodejs` (legacy which is not maintained anymore) to [node.bcrypt.js](https://github.com/kelektiv/node.bcrypt.js)
 * Considering using CSS-in-JS, e.g. [styled-components](https://styled-components.com)
 * Optimization
   * More advanced webpack config

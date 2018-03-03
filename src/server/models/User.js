@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt-nodejs')
+const bcrypt = require('bcrypt')
 const mongoose = require('mongoose')
 
 const UserSchema = mongoose.Schema({
@@ -30,8 +30,10 @@ UserSchema.pre('save', function (next) {
   next()
 })
 
+const saltRounds = 10
+
 UserSchema.methods.generateHash = function (password) {
-  return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null)
+  return bcrypt.hashSync(password, bcrypt.genSaltSync(saltRounds))
 }
 
 UserSchema.methods.validPassword = function (password) {
