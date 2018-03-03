@@ -1,8 +1,6 @@
 import React, { Component } from 'react'
-import moment from 'moment'
+import { distanceInWordsToNow } from 'date-fns'
 import { arrayOf, shape, string } from 'prop-types'
-
-moment.locale('fi')
 
 class MessageList extends Component {
   componentWillUpdate = () => {
@@ -25,8 +23,8 @@ class MessageList extends Component {
       if (messages.length > 0) {
         return messages.map(message => (
           <p key={message.date}>
-            <strong>{message.user}</strong>{' '}
-            {moment(message.date).format(dateFormat)}
+            <strong>{message.user}</strong> {distanceInWordsToNow(message.date)}{' '}
+            ago
             <br /> {message.msg}
           </p>
         ))
