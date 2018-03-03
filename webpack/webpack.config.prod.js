@@ -5,20 +5,20 @@ module.exports = {
     mode: 'production',
     devtool: 'source-map',
     entry: [
-        path.join(__dirname, '..', 'src', 'client', 'index.js')
+        path.join(__dirname, '..', 'src', 'client', 'index.js'),
     ],
 
     output: {
         path: path.join(__dirname, '..',  'dist'),
         filename: 'bundle.js',
-        publicPath: '/'
+        publicPath: '/',
     },
     plugins: [
         new webpack.DefinePlugin({
             'process.env': {
-                NODE_ENV: JSON.stringify('production')
-            }
-        })
+                NODE_ENV: JSON.stringify('production'),
+            },
+        }),
     ],
 
     module: {
@@ -28,7 +28,7 @@ module.exports = {
                 use: {
                     loader: 'babel-loader',
                      options: {
-                        presets: ['es2015', 'stage-0', 'react']
+                        presets: ['es2015', 'stage-0', 'react'],
                      },
                 },
                 exclude: /node_modules/,
