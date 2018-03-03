@@ -4,7 +4,7 @@ Possible future improvements:
 * Separate the repository to front & back repositories from the current monolithic approach
 * Add state container such as [Redux](https://redux.js.org)
 * Refactor both server & client side code
-* Add front end specific tests with e.g. (Jest)[https://facebook.github.io/jest/], [enzyme](http://airbnb.io/enzyme/)
+* Add front end specific tests with e.g. [Jest](https://facebook.github.io/jest/), [enzyme](http://airbnb.io/enzyme/)
 * Get rid of mutable stuff
 * Change `bcrypt-nodejs` (legacy which is not maintained anymore) to [node.bcrypt.js](https://github.com/kelektiv/node.bcrypt.js)
 * Considering using CSS-in-JS, e.g. [styled-components](https://styled-components.com)
