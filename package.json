@@ -56,7 +56,7 @@
     "passport-local": "1.0.0",
     "passport.socketio": "3.7.0",
     "path": "0.12.7",
-    "prop-types": "15.6.0",
+    "prop-types": "15.6.1",
     "react": "16.2.0",
     "react-cookie": "2.1.4",
     "react-dom": "16.2.0",
