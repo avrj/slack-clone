@@ -2,6 +2,7 @@ const webpack = require('webpack');
 const path = require('path');
 
 module.exports = {
+    mode: 'production',
     devtool: 'source-map',
     entry: [
         path.join(__dirname, '..', 'src', 'client', 'index.js')

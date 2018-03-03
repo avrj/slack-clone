@@ -2,6 +2,7 @@ var path = require('path');
 var webpack = require('webpack');
 
 module.exports = {
+    mode: 'development',
     devtool: 'inline-source-map',
     devServer: {
       contentBase: path.join(__dirname, '..', 'dist'),
