@@ -32,11 +32,11 @@ UserSchema.pre('save', function (next) {
 
 const saltRounds = 10
 
-UserSchema.methods.generateHash = function (password) {
+UserSchema.methods.generateHash = function generateHash (password) {
   return bcrypt.hashSync(password, bcrypt.genSaltSync(saltRounds))
 }
 
-UserSchema.methods.validPassword = function (password) {
+UserSchema.methods.validPassword = function isValidPassword (password) {
   return bcrypt.compareSync(password, this.local.password)
 }
 

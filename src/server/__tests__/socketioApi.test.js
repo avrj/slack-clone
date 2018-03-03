@@ -10,14 +10,12 @@ const io = require('socket.io-client')
 
 const events = require('../../common/events')
 
-function getSessionIdFromCookie (res) {
-  let cookie = res.headers['set-cookie']
+const parseSessionId = cookie => cookie[0].split('%3A')[1].split('.')[0]
 
-  cookie = cookie[0]
-  cookie = cookie.split('%3A')[1]
-  cookie = cookie.split('.')[0]
+const getSessionIdFromCookie = res => {
+  const cookie = res.headers['set-cookie']
 
-  return cookie
+  return parseSessionId(cookie)
 }
 
 const apiUrls = {

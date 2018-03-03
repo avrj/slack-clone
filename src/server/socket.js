@@ -4,18 +4,13 @@ const debug = require('debug')('chat')
 const events = require('../common/events')
 const models = require('./models')
 
-function joinSavedChannels (nick, socket) {
+const joinSavedChannels = (nick, socket) => {
   models.User.findOne(
     { 'local.username': socket.request.user },
     { 'local.channels': 1 }
   )
     .exec()
-    .then(user => {
-      user.local.channels.forEach(channel => {
-        socket.join(channel)
-        // socket.emit(events.join, channel);
-      })
-    })
+    .then(user => user.local.channels.forEach(channel => socket.join(channel)))
 }
 
 const handleJoin = (socket, connectedClientsForUser) => channelToJoin => {
@@ -36,20 +31,15 @@ const handleJoin = (socket, connectedClientsForUser) => channelToJoin => {
         .exec()
         .then(user => {
           if (user) {
-            debug(
-              `error joining channel: ${
-                socket.request.user
-              } is already joined to ${channelToJoin}`
-            )
-            throw new Error(
-              `error joining channel: ${
-                socket.request.user
-              } is already joined to ${channelToJoin}`
-            )
+            const errorMsg = `error joining channel: ${
+              socket.request.user
+            } is already joined to ${channelToJoin}`
+            debug(errorMsg)
+            throw new Error(errorMsg)
           } else {
-            connectedClientsForUser.forEach(socket1 => {
-              socket1.join(channelToJoin)
-              socket1.emit(events.join, channelToJoin)
+            connectedClientsForUser.forEach(socketInstance => {
+              socketInstance.join(channelToJoin)
+              socketInstance.emit(events.join, channelToJoin)
             })
 
             return models.User.findOneAndUpdate(
@@ -66,9 +56,9 @@ const handleJoin = (socket, connectedClientsForUser) => channelToJoin => {
           )
         })
     } else {
-      connectedClientsForUser.forEach(socket1 => {
-        socket1.join(channelToJoin)
-        socket1.emit(events.join, channelToJoin)
+      connectedClientsForUser.forEach(socketInstance => {
+        socketInstance.join(channelToJoin)
+        socketInstance.emit(events.join, channelToJoin)
       })
 
       const newChannel = new models.Channel()
@@ -116,9 +106,9 @@ const handleLeave = (socket, config, connectedClientsForUser) => channelIn => {
     .exec()
     .then(user => {
       if (user) {
-        connectedClientsForUser.forEach(socket1 => {
-          socket1.leave(channel)
-          socket1.emit(events.leave, channel)
+        connectedClientsForUser.forEach(socketInstance => {
+          socketInstance.leave(channel)
+          socketInstance.emit(events.leave, channel)
         })
 
         return models.User.findOneAndUpdate(
@@ -204,8 +194,8 @@ const handlePrivateMsg = (socket, io, connectedClientsForUser) => data => {
   if (data.to !== socket.request.user) {
     passportSocketIo
       .filterSocketsByUser(io, user => user === data.to)
-      .forEach(socket1 => {
-        socket1.emit(events.privateMsg, {
+      .forEach(socketInstance => {
+        socketInstance.emit(events.privateMsg, {
           from: socket.request.user,
           msg: data.msg,
         })
@@ -213,9 +203,9 @@ const handlePrivateMsg = (socket, io, connectedClientsForUser) => data => {
   }
 
   /* send copy of privatemsg to all clients of sender */
-  connectedClientsForUser.forEach(socket1 => {
-    if (socket1 !== socket) {
-      socket1.emit(events.ownPrivateMsg, {
+  connectedClientsForUser.forEach(socketInstance => {
+    if (socketInstance !== socket) {
+      socketInstance.emit(events.ownPrivateMsg, {
         to: data.to,
         msg: data.msg,
       })
@@ -242,7 +232,7 @@ const handleDisconnect = (socket, connectedClientsForUser) => () => {
   }
 }
 
-module.exports = function setupSocketIo (config, io) {
+module.exports = (config, io) => {
   io.sockets.on('connection', socket => {
     // eslint-disable-next-line no-param-reassign
     socket.request.user = socket.request.user.toLowerCase()
