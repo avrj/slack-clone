@@ -1,4 +1,5 @@
 language: node_js
+
 deploy:
   provider: heroku
   api_key:
@@ -6,10 +7,17 @@ deploy:
   app: zh47
   on:
     repo: avrj/slack-clone
+    
 script:
-- istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec
+- npm run coverage-travis
+
 after_success:
 - codecov
+
 env:
   global:
   - NODE_ENV=test
+  
+cache:
+  directories:
+    - node_modules

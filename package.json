@@ -4,19 +4,31 @@
   "description": "A Slack clone made with React.JS, Socket.io and Node.js",
   "main": "index.js",
   "scripts": {
-    "heroku-postbuild": "webpack -p --config ./webpack.config.prod.js",
-    "start": "node app.js",
+    "heroku-postbuild": "webpack -p --config ./webpack/webpack.config.prod.js",
+    "start": "node ./src/server/app.js",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "test": "NODE_ENV=test mocha -R spec",
-    "coverage": "NODE_ENV=test istanbul cover _mocha -- -R spec --exit"
+    "test": "NODE_ENV=test mocha -R spec ./src/server/__tests__/*.js",
+    "coverage": "NODE_ENV=test istanbul cover _mocha -- -R spec ./src/server/__tests__/*.js",
+    "coverage-travis": "NODE_ENV=test istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec ./src/server/__tests__/*.js",
+    "format": "prettier-standard 'src/**/*.js'",
+    "precommit": "lint-staged"
+  },
+  "lint-staged": {
+    "linters": {
+      "src/**/*.js": [
+        "prettier-standard",
+        "git add"
+      ]
+    }
   },
   "author": "Anton Räihä",
   "private": true,
   "license": "MIT",
   "dependencies": {
     "babel-core": "6.26.0",
-    "babel-loader": "7.1.2",
+    "babel-loader": "7.1.3",
+    "babel-polyfill": "6.26.0",
     "babel-preset-es2015": "6.24.1",
     "babel-preset-react": "6.24.1",
     "babel-preset-stage-0": "6.24.1",
@@ -44,13 +56,13 @@
     "passport-local": "1.0.0",
     "passport.socketio": "3.7.0",
     "path": "0.12.7",
+    "prop-types": "15.6.0",
     "react": "16.2.0",
-    "react-cookie": "2.1.2",
+    "react-cookie": "2.1.4",
     "react-dom": "16.2.0",
     "react-hot-loader": "3.1.3",
-    "react-router": "4.2.0",
+    "react-router-dom": "4.2.2",
     "react-sidebar": "2.3.2",
-    "react-tap-event-plugin": "3.0.2",
     "sass-loader": "6.0.6",
     "socket.io": "2.0.4",
     "socket.io-client": "2.0.4",
@@ -68,7 +80,11 @@
     "eslint-plugin-import": "2.9.0",
     "eslint-plugin-jsx-a11y": "6.0.3",
     "eslint-plugin-react": "7.7.0",
+    "husky": "0.14.3",
+    "lint-staged": "7.0.0",
     "mocha": "5.0.1",
+    "prettier-standard": "8.0.0",
+
     "supertest": "3.0.0",
     "webpack-dev-middleware": "2.0.6",
     "webpack-hot-middleware": "2.21.0"
