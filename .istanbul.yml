@@ -1,2 +1,2 @@
 instrumentation:
-    excludes: ['app.js']
+    excludes: ['./src/server/app.js']
