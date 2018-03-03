@@ -19,11 +19,17 @@ import AttentionDialog from './AttentionDialog'
 import UserProfile from './UserProfile'
 import MessageList from './MessageList'
 
+const parseSessionId = authCookie => authCookie.split(':')[1].split('.')[0]
+
 class App extends Component {
   constructor (props) {
     super(props)
 
-    this.initialState = {
+    this.persistentActiveChannelIdentifier = 'activeChannel'
+    this.persistentActiveUserIdentifier = 'activeUser'
+    this.persistentLoggedUserIdentifier = 'loggedUser'
+
+    this.state = {
       users: {},
       channels: {},
       activeChannel: null,
@@ -38,19 +44,10 @@ class App extends Component {
       errorSnackbarText: '',
     }
 
-    this.persistentActiveChannelIdentifier = 'activeChannel'
-    this.persistentActiveUserIdentifier = 'activeUser'
-    this.persistentLoggedUserIdentifier = 'loggedUser'
-
-    this.state = this.initialState
-
-    let authCookie = props.cookies.get('express.sid')
-
-    authCookie = authCookie.split(':')[1]
-    authCookie = authCookie.split('.')[0]
+    const sessionId = parseSessionId(props.cookies.get('express.sid'))
 
     this.client = io.connect(`//${window.location.host}`, {
-      query: `session_id=${authCookie}`,
+      query: `session_id=${sessionId}`,
     })
 
     const eventHandlers = [
@@ -96,14 +93,13 @@ class App extends Component {
       )
     }
 
-    const users = {}
-
-    for (let i = 0; i < responseJson.length; i++) {
-      users[responseJson[i].local.username] = {
-        online: responseJson[i].local.online,
+    const users = responseJson.reduce((previousValue, currentValue) => {
+      previousValue[currentValue.local.username] = {
+        online: currentValue.local.online,
         messages: [],
       }
-    }
+      return previousValue
+    }, {})
 
     this.setState({ users })
 
@@ -126,14 +122,16 @@ class App extends Component {
   }
 
   handleOnConnectFetchUserChannelsResponse = responseJson => {
-    const channels = {}
-
-    for (let i = 0; i < responseJson.local.channels.length; i++) {
-      channels[responseJson.local.channels[i]] = {
-        messages: [],
-        earlierMessagesLoadedBefore: false,
-      }
-    }
+    const channels = responseJson.local.channels.reduce(
+      (previousValue, currentValue) => {
+        previousValue[currentValue] = {
+          messages: [],
+          earlierMessagesLoadedBefore: false,
+        }
+        return previousValue
+      },
+      {}
+    )
 
     const loggedUser = localStorage.getItem(this.persistentLoggedUserIdentifier)
 
@@ -427,38 +425,30 @@ class App extends Component {
   }
 
   sendMsg = msg => {
+    const msgData = {
+      date: new Date().toISOString(),
+      user: this.state.loggedUser,
+      msg,
+    }
+
     if (this.state.activeChannel) {
       const channels = JSON.parse(JSON.stringify(this.state.channels))
 
-      const messages = channels[this.state.activeChannel].messages
-
-      const msgData = {
-        date: new Date().toISOString(),
-        user: this.state.loggedUser,
-        msg,
-      }
-
-      messages.push(msgData)
-
-      channels[this.state.activeChannel].messages = messages
+      channels[this.state.activeChannel].messages = [
+        ...channels[this.state.activeChannel].messages,
+        msgData,
+      ]
 
       this.setState({ channels })
 
       this.client.emit(events.msg, { room: this.state.activeChannel, msg })
     } else {
-      const msgData = {
-        date: new Date().toISOString(),
-        user: this.state.loggedUser,
-        msg,
-      }
-
       const users = JSON.parse(JSON.stringify(this.state.users))
 
-      const messages = users[this.state.activeUser].messages
-
-      messages.push(msgData)
-
-      users[this.state.activeUser].messages = messages
+      users[this.state.activeUser].messages = [
+        ...users[this.state.activeUser].messages,
+        msgData,
+      ]
 
       this.setState({ users })
 
@@ -515,7 +505,7 @@ class App extends Component {
     channels[channel] = {
       hasNewMessages: false,
       earlierMessagesLoadedBefore: true,
-      messages: messages.concat(this.state.channels[channel].messages),
+      messages: [...messages, ...this.state.channels[channel].messages],
     }
 
     this.setState({
@@ -567,9 +557,7 @@ class App extends Component {
 
       this.removePersistentData()
 
-      this.setState(
-        Object.assign({}, this.initialState, { disconnectedByClient: true })
-      )
+      this.setState({ disconnectedByClient: true })
 
       this.props.history.push({
         pathname: '/',
