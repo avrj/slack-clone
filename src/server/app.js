@@ -21,16 +21,16 @@ const routes = require('./routes')
 
 process.env.NODE_ENV = process.env.NODE_ENV || 'development'
 
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost/chat_dev'
+
 if (process.env.NODE_ENV == 'test') {
   debug('database mocked')
 
-  mockgoose(mongoose).then(() => {
-    mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/chat_dev')
-  })
+  mockgoose(mongoose).then(() => mongoose.connect(MONGODB_URI))
 } else {
   debug('database not mocked')
 
-  mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/chat_dev')
+  mongoose.connect(MONGODB_URI)
 }
 
 const sessionStore = new MongoStore({ mongooseConnection: mongoose.connection })
@@ -76,26 +76,24 @@ if (process.env.NODE_ENV == 'development') {
 } else {
   debug('Serving production bundle')
 
-  app.get('/bundle.js', (req, res) => {
+  app.get('/bundle.js', (req, res) =>
     res.sendFile(path.join(__dirname, '..', '..', 'dist', 'bundle.js'))
-  })
-  app.get('/bundle.js.map', (req, res) => {
+  )
+  app.get('/bundle.js.map', (req, res) =>
     res.sendFile(path.join(__dirname, '..', '..', 'dist', 'bundle.js.map'))
-  })
+  )
 }
 
-app.get('*', (req, res) => {
+app.get('*', (req, res) =>
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'))
-})
+)
 
 io.use(
   passportSocketIo.authorize({
     key: 'express.sid',
     secret,
     store: sessionStore,
-    success: (data, accept) => {
-      accept()
-    },
+    success: (data, accept) => accept(),
     fail: (data, message, error, accept) => {
       if (error) {
         debug(`error: ${message}`)
@@ -114,13 +112,11 @@ const socketHandler = require('./socket.js')(config, io)
 const port = process.env.PORT || 3000
 
 if (process.env.NODE_ENV !== 'test') {
-  http.listen(port, () => {
-    debug(`listening on *:${port}`)
-  })
+  http.listen(port, () => debug(`listening on *:${port}`))
 }
 
 module.exports = {
   http,
   app,
-  mockgoose: process.env.NODE_ENV == 'test' ? mockgoose : null,
+  mockgoose: process.env.NODE_ENV === 'test' ? mockgoose : null,
 }
