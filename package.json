@@ -48,6 +48,7 @@
     "file-loader": "1.1.11",
     "helmet": "3.12.0",
     "istanbul": "0.4.5",
+    "js-cookie": "^2.2.0",
     "material-ui": "0.20.0",
     "mockgoose": "6.0.8",
     "mongoose": "5.0.8",
