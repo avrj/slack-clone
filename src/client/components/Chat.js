@@ -15,9 +15,13 @@ import ChatInput from './ChatInput'
 import ChannelList from './ChannelList'
 import UserList from './UserList'
 import JoinChannelDialog from './JoinChannelDialog'
-import AttentionDialog from './AttentionDialog'
 import UserProfile from './UserProfile'
 import MessageList from './MessageList'
+import ErrorHandler from './ErrorHandler'
+import { shape, string } from 'prop-types'
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
+import { actions } from './redux/reducers/user'
 
 const parseSessionId = authCookie => authCookie.split(':')[1].split('.')[0]
 
@@ -33,20 +37,15 @@ const dissoc = (prop, obj) => {
   return result
 }
 
+const API_ENDPOINT = '/api'
+
 class App extends Component {
   constructor (props) {
     super(props)
 
-    this.persistentActiveChannelIdentifier = 'activeChannel'
-    this.persistentActiveUserIdentifier = 'activeUser'
-    this.persistentLoggedUserIdentifier = 'loggedUser'
-
     this.state = {
       users: {},
       channels: {},
-      activeChannel: null,
-      activeUser: null,
-      loggedUser: null,
       showDrawer: false,
       isConnecting: true,
       isConnected: false,
@@ -62,47 +61,78 @@ class App extends Component {
     })
 
     const eventHandlers = [
-      { event: events.connect, handler: this._handleConnect },
-      { event: events.disconnect, handler: this._handleDisconnect },
-      { event: events.error, handler: this._handleError },
-      { event: events.online, handler: this._handleOnline },
-      { event: events.offline, handler: this._handleOffline },
-      { event: events.join, handler: this._handleJoin },
-      { event: events.leave, handler: this._handleLeave },
-      { event: events.msg, handler: this._handleMsg },
-      { event: events.privateMsg, handler: this._handlePrivateMsg },
-      { event: events.ownPrivateMsg, handler: this._handleOwnPrivateMsg },
+      { event: events.connect, handler: this.onConnect },
+      { event: events.disconnect, handler: this.onDisconnect },
+      { event: events.error, handler: this.onError },
+      { event: events.online, handler: this.onUserOnline },
+      { event: events.offline, handler: this.onUserOffline },
+      { event: events.join, handler: this.onJoinChannel },
+      { event: events.leave, handler: this.onLeaveChannel },
+      { event: events.msg, handler: this.onMsgReceived },
+      { event: events.privateMsg, handler: this.onPrivateMsgReceived },
+      { event: events.ownPrivateMsg, handler: this.onOwnPrivateMsgReceived },
     ]
 
     eventHandlers.map(({ event, handler }) => this.client.on(event, handler))
   }
 
-  _handleConnect = () => {
-    fetch('/api/users', {
-      credentials: 'include',
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(response => response.json())
-      .then(this.handleOnConnectFetchUsersResponse)
-      .catch(error => {
-        this.setState({
-          showErrorSnackbar: true,
-          errorSnackbarText: 'Error retrieving users',
-        })
+  getUsers = async () => {
+    try {
+      const response = await fetch(API_ENDPOINT + '/users', {
+        credentials: 'include',
       })
+      return response.json()
+    } catch (error) {
+      this.setState({
+        showErrorSnackbar: true,
+        errorSnackbarText: 'Error retrieving users',
+      })
+    }
   }
 
-  handleOnConnectFetchUsersResponse = responseJson => {
-    if (!localStorage.getItem(this.persistentLoggedUserIdentifier)) {
-      localStorage.setItem(
-        this.persistentLoggedUserIdentifier,
-        this.props.location.state.username
-      )
+  getChannels = async () => {
+    try {
+      const response = await fetch(API_ENDPOINT + '/user/channels', {
+        credentials: 'include',
+      })
+      return response.json()
+    } catch (error) {
+      this.setState({
+        showErrorSnackbar: true,
+        errorSnackbarText: 'Error retrieving channels',
+      })
     }
+  }
+
+  getChannelsMessages = async channel => {
+    try {
+      const response = await fetch(
+        API_ENDPOINT + `/channel/${channel}/messages`,
+        {
+          credentials: 'include',
+        }
+      )
+      return response.json()
+    } catch (error) {
+      this.setState({
+        showErrorSnackbar: true,
+        errorSnackbarText: 'Error retrieving channels messages',
+      })
+    }
+  }
+
+  onConnect = async () => {
+    const users = await this.getUsers()
+
+    this.handleOnConnectFetchUsersResponse(users)
+
+    const channels = await this.getChannels()
+
+    this.handleOnConnectFetchUserChannelsResponse(channels)
+  }
+
+  handleOnConnectFetchUsersResponse = async responseJson => {
+    !this.props.user && this.props.setUser(this.props.location.state.username)
 
     const users = responseJson.reduce((previousValue, currentValue) => {
       previousValue[currentValue.local.username] = {
@@ -113,31 +143,14 @@ class App extends Component {
     }, {})
 
     this.setState({ users })
-
-    fetch('/api/user/channels', {
-      credentials: 'include',
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(response => response.json())
-      .then(this.handleOnConnectFetchUserChannelsResponse)
-      .catch(error => {
-        this.setState({
-          showErrorSnackbar: true,
-          errorSnackbarText: "Error retrieving user's channels",
-        })
-      })
   }
 
-  handleOnConnectFetchUserChannelsResponse = responseJson => {
-    const loggedUser = localStorage.getItem(this.persistentLoggedUserIdentifier)
+  handleOnConnectFetchUserChannelsResponse = async responseJson => {
+    const loggedUser = this.props.user
 
     this.setState({ loggedUser })
 
-    const activeUser = localStorage.getItem(this.persistentActiveUserIdentifier)
+    const activeUser = this.props.activeUser
 
     const channels = responseJson.local.channels.reduce(
       (previousValue, currentValue) => {
@@ -159,33 +172,16 @@ class App extends Component {
         channels,
       })
     } else {
-      const activeChannel = localStorage.getItem(
-        this.persistentActiveChannelIdentifier
-      )
-        ? localStorage.getItem(this.persistentActiveChannelIdentifier)
+      const activeChannel = this.props.activeChannel
+        ? this.props.activeChannel
         : Object.keys(channels)[0]
 
-      fetch(`/api/channel/${activeChannel}/messages`, {
-        credentials: 'include',
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-      })
-        .then(response => response.json())
-        .then(responseJson =>
-          this.handleOnConnectFetchActiveChannelMessagesResponse(
-            responseJson,
-            channels
-          )
-        )
-        .catch(error => {
-          this.setState({
-            showErrorSnackbar: true,
-            errorSnackbarText: 'Error retrieving channels messages',
-          })
-        })
+      const activeChannelsMsgs = await this.getChannelsMessages(activeChannel)
+
+      this.handleOnConnectFetchActiveChannelMessagesResponse(
+        activeChannelsMsgs,
+        channels
+      )
     }
   }
 
@@ -199,10 +195,8 @@ class App extends Component {
       msg: text,
     }))
 
-    const activeChannel = localStorage.getItem(
-      this.persistentActiveChannelIdentifier
-    )
-      ? localStorage.getItem(this.persistentActiveChannelIdentifier)
+    const activeChannel = this.props.activeChannel
+      ? this.props.activeChannel
       : Object.keys(channels)[0]
 
     this.setState({
@@ -221,12 +215,12 @@ class App extends Component {
     })
   }
 
-  _handleDisconnect = () => {
+  onDisconnect = () => {
     this.setState({ isConnected: false })
   }
 
-  _handleError = error => {
-    if (error == 'Unauthorized') {
+  onError = error => {
+    if (error === 'Unauthorized') {
       this.props.history.push({
         pathname: '/',
         state: {
@@ -241,29 +235,10 @@ class App extends Component {
     }
   }
 
-  _handleJoin = channel => {
-    fetch(`/api/channel/${channel}/messages`, {
-      credentials: 'include',
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(response => response.json())
-      .then(responseJson =>
-        this.handleJoinedChannelMessages(responseJson, channel)
-      )
-      .catch(error =>
-        this.setState({
-          showErrorSnackbar: true,
-          errorSnackbarText: 'Error retrieving channels messages',
-        })
-      )
-  }
+  onJoinChannel = async channel => {
+    const messages = await this.getChannelsMessages(channel)
 
-  handleJoinedChannelMessages = (responseJson, channel) => {
-    const messages = responseJson.map(({ timestamp, user, text }) => ({
+    const messagesTransformed = messages.map(({ timestamp, user, text }) => ({
       date: timestamp,
       user,
       msg: text,
@@ -275,36 +250,35 @@ class App extends Component {
         [channel]: {
           hasNewMessages: false,
           earlierMessagesLoadedBefore: true,
-          messages,
+          messagesTransformed,
         },
       },
       activeChannel: channel,
       activeUser: null,
     }))
 
-    this.setPersistentActiveChannel(channel)
+    this.setActiveChannel(channel)
   }
 
-  _handleMsg = msg => {
+  onMsgReceived = msg => {
     const channel = msg.room
 
-    if (!this.state.channels[channel]) return
+    const channelExists = channel => this.state.channels[channel]
+
+    if (!channelExists(channel)) return
 
     const channels = JSON.parse(JSON.stringify(this.state.channels))
 
     channels[channel].messages = [...channels[channel].messages, msg]
 
-    if (
-      channel !== this.state.activeChannel &&
-      msg.user !== this.state.loggedUser
-    ) {
+    if (channel !== this.props.activeChannel && msg.user !== this.props.user) {
       channels[channel].hasNewMessages = true
     }
 
     this.setState({ channels })
   }
 
-  _handleOnline = user => {
+  onUserOnline = user => {
     const users = JSON.parse(JSON.stringify(this.state.users))
 
     if (users[user]) {
@@ -316,17 +290,13 @@ class App extends Component {
     this.setState({ users })
   }
 
-  _handleOffline = user => {
-    const users = JSON.parse(JSON.stringify(this.state.users))
-
-    users[user].online = false
-
-    this.setState({ users })
+  onUserOffline = user => {
+    this.setState(({ users }) => ({
+      users: { ...users, [user]: { ...users[user], online: false } },
+    }))
   }
 
-  _handlePrivateMsg = data => {
-    const users = JSON.parse(JSON.stringify(this.state.users))
-
+  onPrivateMsgReceived = data => {
     const { from } = data
 
     const msg = {
@@ -335,50 +305,48 @@ class App extends Component {
       msg: data.msg,
     }
 
-    if (users[from]) {
-      users[from].messages = [...users[from].messages, msg]
-    } else {
-      users[from] = { messages: [msg] }
-    }
-
-    if (this.state.activeUser !== data.from) {
-      users[from].hasNewMessages = true
-    }
-
-    this.setState({ users })
+    this.setState(({ users, activeUser }) => ({
+      users: {
+        ...users,
+        [from]: {
+          ...users[from],
+          hasNewMessages:
+            this.props.activeUser !== from ? true : users[from].hasNewMessages,
+          messages: users[from] ? [...users[from].messages, msg] : [msg],
+        },
+      },
+    }))
   }
 
-  _handleOwnPrivateMsg = data => {
-    const users = JSON.parse(JSON.stringify(this.state.users))
-
+  onOwnPrivateMsgReceived = data => {
     const { msg, to } = data
 
     const msgData = {
       date: new Date().toISOString(),
-      user: this.state.loggedUser,
+      user: this.props.user,
       msg,
     }
 
-    if (users[to]) {
-      users[to].messages = [...users[to].messages, msgData]
-    } else {
-      users[to] = {
-        messages: [msgData],
-      }
-    }
-
-    this.setState({
-      users,
-    })
+    this.setState(({ users }) => ({
+      users: {
+        ...users,
+        [to]: {
+          ...users[to],
+          messages: users[to] ? [...users[to].messages, msgData] : [msgData],
+        },
+      },
+    }))
   }
 
   join = channelToJoin => {
-    channelToJoin = channelToJoin.toLowerCase()
+    const channel = channelToJoin.toLowerCase()
 
-    if (this.state.channels[channelToJoin]) {
-      this.setState({ activeChannel: channelToJoin, activeUser: null })
+    const channelExists = channel => this.state.channels[channel]
+
+    if (channelExists(channel)) {
+      this.setState({ activeChannel: channel, activeUser: null })
     } else {
-      this.client.emit(events.join, channelToJoin)
+      this.client.emit(events.join, channel)
     }
 
     this.setState({
@@ -388,27 +356,24 @@ class App extends Component {
   }
 
   leaveChannel = () => {
-    this.client.emit(events.leave, this.state.activeChannel)
+    this.client.emit(events.leave, this.props.activeChannel)
   }
 
-  _handleLeave = channel => {
+  onLeaveChannel = channel => {
     const channels = dissoc(channel, this.state.channels)
 
     const channelNames = Object.keys(channels)
 
-    if (channel == this.state.activeChannel) {
+    if (channel === this.props.activeChannel) {
       this.setState({
         activeChannel: channelNames.length > 0 ? channelNames[0] : null,
-        activeUser: channelNames.length === 0 ? this.state.loggedUser : null,
+        activeUser: channelNames.length === 0 ? this.props.user : null,
       })
 
       if (channelNames.length > 0) {
-        localStorage.setItem(
-          this.persistentActiveChannelIdentifier,
-          channelNames[0]
-        )
+        this.props.setActiveChannel(channelNames[0])
       } else {
-        localStorage.removeItem(this.persistentActiveChannelIdentifier)
+        this.props.setActiveChannel(null)
       }
     }
 
@@ -420,32 +385,34 @@ class App extends Component {
   sendMsg = msg => {
     const msgData = {
       date: new Date().toISOString(),
-      user: this.state.loggedUser,
+      user: this.props.user,
       msg,
     }
 
-    if (this.state.activeChannel) {
-      const channels = JSON.parse(JSON.stringify(this.state.channels))
+    if (this.props.activeChannel) {
+      this.setState(({ channels, activeChannel }) => ({
+        channels: {
+          ...channels,
+          [activeChannel]: {
+            ...channels[activeChannel],
+            messages: [...channels[activeChannel].messages, msgData],
+          },
+        },
+      }))
 
-      channels[this.state.activeChannel].messages = [
-        ...channels[this.state.activeChannel].messages,
-        msgData,
-      ]
-
-      this.setState({ channels })
-
-      this.client.emit(events.msg, { room: this.state.activeChannel, msg })
+      this.client.emit(events.msg, { room: this.props.activeChannel, msg })
     } else {
-      const users = JSON.parse(JSON.stringify(this.state.users))
+      this.setState(({ users, activeUser }) => ({
+        users: {
+          ...users,
+          [activeUser]: {
+            ...users[activeUser],
+            messages: [...users[activeUser].messages, msgData],
+          },
+        },
+      }))
 
-      users[this.state.activeUser].messages = [
-        ...users[this.state.activeUser].messages,
-        msgData,
-      ]
-
-      this.setState({ users })
-
-      this.client.emit(events.privateMsg, { to: this.state.activeUser, msg })
+      this.client.emit(events.privateMsg, { to: this.props.activeUser, msg })
     }
   }
 
@@ -463,15 +430,10 @@ class App extends Component {
         showDrawer: false,
       })
 
-      this.setPersistentActiveChannel(channel)
+      this.setActiveChannel(channel)
     } else {
       fetch(`/api/channel/${channel}/messages`, {
         credentials: 'include',
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
       })
         .then(response => response.json())
         .then(responseJson =>
@@ -508,7 +470,7 @@ class App extends Component {
       showDrawer: false,
     })
 
-    this.setPersistentActiveChannel(channel)
+    this.setActiveChannel(channel)
   }
 
   setActiveUser = user => {
@@ -523,17 +485,13 @@ class App extends Component {
       showDrawer: false,
     })
 
-    this.setPersistentActiveUser(user)
+    this.setActiveUser(user)
   }
 
   signOut = () =>
     fetch('/api/logout', {
       credentials: 'include',
       method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
     })
       .then(response => response.json())
       .then(this.handleSignOutResponse)
@@ -566,24 +524,16 @@ class App extends Component {
     }
   }
 
-  setPersistentActiveChannel = channel => {
-    localStorage.setItem(this.persistentActiveChannelIdentifier, channel)
-    localStorage.removeItem(this.persistentActiveUserIdentifier)
+  setActiveChannel = channel => {
+    this.props.setActiveChannel(channel)
   }
 
-  setPersistentActiveUser = user => {
-    localStorage.setItem(this.persistentActiveUserIdentifier, user)
-    localStorage.removeItem(this.persistentActiveChannelIdentifier)
+  setActiveUser = user => {
+    this.props.setActiveUser(user)
   }
 
   removePersistentData = () => {
-    const itemsToRemove = [
-      this.persistentActiveChannelIdentifier,
-      this.persistentActiveUserIdentifier,
-      this.persistentLoggedUserIdentifier,
-    ]
-
-    itemsToRemove.map(item => localStorage.removeItem(item))
+    this.props.removeUserData()
   }
 
   handleErrorSnackbarRequestClose = () => {
@@ -603,107 +553,120 @@ class App extends Component {
   renderChat = () => {
     const appBarOrigin = { horizontal: 'right', vertical: 'top' }
 
-    const { loggedUser, activeChannel, activeUser } = this.state
+    const { users, channels, user, activeChannel, activeUser } = this.props
 
     let messages
 
-    if (this.state.activeChannel) {
-      messages = this.state.channels[this.state.activeChannel].messages
+    if (activeChannel) {
+      messages = channels[activeChannel].messages
     } else {
-      messages = this.state.users[this.state.activeUser]
-        ? this.state.users[this.state.activeUser].messages
-        : []
+      messages = users[activeUser] ? users[activeUser].messages : []
     }
 
-    if (this.state.isConnecting) {
-      return <AttentionDialog title='Connecting' text='Just a sec...' />
-    } else if (this.state.isConnected) {
-      return (
-        <div>
-          <Snackbar
-            open={this.state.showErrorSnackbar}
-            message={this.state.errorSnackbarText}
-            autoHideDuration={4000}
-            onRequestClose={this.handleErrorSnackbarRequestClose}
-          />
-          {this.state.showJoinChannelDialog && (
-            <JoinChannelDialog join={this.join} />
-          )}
-          <Drawer
-            docked={false}
-            open={this.state.showDrawer}
-            onRequestChange={this.toggleDrawer}
-          >
-            <div style={{ padding: '10' }}>
-              <UserProfile loggedUser={loggedUser} />
-              <ChannelList
-                showJoinChannelDialog={this.showJoinChannelDialog}
-                activeChannel={activeChannel}
-                setActiveChannel={this.setActiveChannel}
-                channels={this.state.channels}
-              />
-              <UserList
-                title='Users'
-                loggedUser={loggedUser}
-                activeUser={activeUser}
-                setActiveUser={this.setActiveUser}
-                users={this.state.users}
-              />
-            </div>
-          </Drawer>
+    const appBarTitle = activeChannel
+      ? `# ${activeChannel}`
+      : `${activeUser}${activeUser === user ? ' (you)' : ''}`
 
-          <div className='chat-wrapper'>
-            <AppBar
-              title={
-                activeChannel
-                  ? `# ${activeChannel}`
-                  : `${activeUser}${activeUser === loggedUser ? ' (you)' : ''}`
-              }
-              iconElementRight={
-                <IconMenu
-                  iconButtonElement={
-                    <IconButton>
-                      <MoreVertIcon />
-                    </IconButton>
-                  }
-                  targetOrigin={appBarOrigin}
-                  anchorOrigin={appBarOrigin}
-                >
-                  {activeChannel && (
-                    <MenuItem
-                      primaryText={`Leave # ${activeChannel}`}
-                      onClick={this.leaveChannel}
-                    />
-                  )}
-                  <MenuItem primaryText='Sign out' onClick={this.signOut} />
-                </IconMenu>
-              }
-              onLeftIconButtonClick={this.toggleDrawerInverted}
-            />
-            <MessageList messages={messages} />
-            <ChatInput sendMsg={this.sendMsg} />
-          </div>
-        </div>
-      )
-    } else if (this.state.isDisconnectedByClient) {
-      return (
-        <AttentionDialog
-          title='Disconnected by client'
-          text='You are now disconnected.'
-        />
-      )
-    }
     return (
-      <AttentionDialog
-        title='Connection lost'
-        text='You will be reconnected automatically if the chat server responds.'
-      />
+      <ErrorHandler
+        isConnecting={this.state.isConnecting}
+        isConnected={this.state.isConnected}
+        isDisconnectedByClient={this.state.isDisconnectedByClient}
+      >
+        <Snackbar
+          open={this.state.showErrorSnackbar}
+          message={this.state.errorSnackbarText}
+          autoHideDuration={4000}
+          onRequestClose={this.handleErrorSnackbarRequestClose}
+        />
+        {this.state.showJoinChannelDialog && (
+          <JoinChannelDialog join={this.join} />
+        )}
+        <Drawer
+          docked={false}
+          open={this.state.showDrawer}
+          onRequestChange={this.toggleDrawer}
+        >
+          <div style={{ padding: '10' }}>
+            <UserProfile loggedUser={user} />
+            <ChannelList
+              showJoinChannelDialog={this.showJoinChannelDialog}
+              activeChannel={activeChannel}
+              setActiveChannel={this.setActiveChannel}
+              channels={channels}
+            />
+            <UserList
+              title='Users'
+              loggedUser={user}
+              activeUser={activeUser}
+              setActiveUser={this.setActiveUser}
+              users={users}
+            />
+          </div>
+        </Drawer>
+
+        <div className='chat-wrapper'>
+          <AppBar
+            title={appBarTitle}
+            iconElementRight={
+              <IconMenu
+                iconButtonElement={
+                  <IconButton>
+                    <MoreVertIcon />
+                  </IconButton>
+                }
+                targetOrigin={appBarOrigin}
+                anchorOrigin={appBarOrigin}
+              >
+                {activeChannel && (
+                  <MenuItem
+                    primaryText={`Leave # ${activeChannel}`}
+                    onClick={this.leaveChannel}
+                  />
+                )}
+                <MenuItem primaryText='Sign out' onClick={this.signOut} />
+              </IconMenu>
+            }
+            onLeftIconButtonClick={this.toggleDrawerInverted}
+          />
+          <MessageList messages={messages} />
+          <ChatInput sendMsg={this.sendMsg} />
+        </div>
+      </ErrorHandler>
     )
   }
 
   render () {
-    return <div className='App'>{this.renderChat()}</div>
+    return this.props.channels && this.props.users ? (
+      <div className='App'>{this.renderChat()}</div>
+    ) : (
+      <div>Loading...</div>
+    )
   }
 }
 
-export default withRouter(withCookies(App))
+App.propTypes = {
+  location: shape({
+    state: shape({
+      username: string.isRequired,
+    }).isRequired,
+  }).isRequired,
+}
+
+const mapStateToProps = ({ users, channels, user }) => {
+  return {
+    users: users.users,
+    channels: channels.channels,
+    user: user.user,
+    activeUser: user.activeUser,
+    activeChannel: user.activeChannel,
+  }
+}
+
+const mapDispatchToProps = dispatch => ({
+  ...bindActionCreators(actions, dispatch),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(
+  withRouter(withCookies(App))
+)
