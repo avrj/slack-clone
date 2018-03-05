@@ -7,4 +7,11 @@ async function fetchChannels () {
   return response.json()
 }
 
-export default { fetchChannels }
+async function fetchChannelsMessages (channel) {
+  const response = await fetch(API_ENDPOINT + `/channel/${channel}/messages`, {
+    credentials: 'include',
+  })
+  return response.json()
+}
+
+export default { fetchChannels, fetchChannelsMessages }
