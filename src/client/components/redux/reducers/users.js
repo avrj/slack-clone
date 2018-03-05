@@ -3,6 +3,7 @@ export const types = {
   FETCH_USERS_SUCCESS: 'USERS/FETCH_USERS_SUCCESS',
   FETCH_USERS_FAILURE: 'USERS/FETCH_USERS_FAILURE',
   SET_USER_ONLINE: 'USERS/SET_USER_ONLINE',
+  SET_USER_OFFLINE: 'USERS/SET_USER_OFFLINE',
 }
 
 const initialState = {}
@@ -34,6 +35,14 @@ export default (state = initialState, action) => {
           users: { ...state.users, [user]: { online: true, messages: [] } },
         }
       }
+    case types.SET_USER_OFFLINE:
+      return {
+        ...state,
+        users: {
+          ...state.users,
+          [action.user]: { ...state.users[action.user], online: false },
+        },
+      }
     default:
       return state
   }
@@ -44,4 +53,5 @@ export const actions = {
   setUsers: users => ({ type: types.FETCH_USERS_SUCCESS, users }),
   fetchFailed: error => ({ type: types.FETCH_USERS_FAILURE, error }),
   setUserOnline: user => ({ type: types.SET_USER_ONLINE, user }),
+  setUserOffline: user => ({ type: types.SET_USER_OFFLINE, user }),
 }
