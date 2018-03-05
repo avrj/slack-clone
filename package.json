@@ -63,6 +63,7 @@
     "react-cookie": "2.1.4",
     "react-dom": "16.2.0",
     "react-hot-loader": "4.0.0",
+    "react-redux": "^5.0.7",
     "react-router-dom": "4.2.2",
     "sass-loader": "6.0.7",
     "socket.io": "2.0.4",
