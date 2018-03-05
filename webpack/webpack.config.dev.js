@@ -13,7 +13,7 @@ module.exports = {
     output: {
         path: path.join(__dirname, '..', 'dist'),
         filename: 'bundle.js',
-        publicPath: '/'
+        publicPath: '/',
     },
     plugins: [
 	new webpack.NamedModulesPlugin(),
@@ -21,9 +21,9 @@ module.exports = {
         new webpack.NoEmitOnErrorsPlugin(),
         new webpack.DefinePlugin({
             'process.env': {
-                NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development')
-            }
-        })
+                NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development'),
+            },
+        }),
     ],
     module: {
         rules: [
@@ -64,6 +64,6 @@ query: {
                 test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
                 loader: 'url?limit=10000&mimetype=image/svg+xml',
             },
-        ]
-    }
+        ],
+    },
 };
