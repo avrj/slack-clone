@@ -28,7 +28,7 @@ import { actions as appActions } from '../../reducers/app'
 import Cookies from 'js-cookie'
 
 class App extends Component {
-  componentWillMount () {
+  componentDidMount () {
     const parseSessionId = authCookie => authCookie.split(':')[1].split('.')[0]
     const sessionId = parseSessionId(Cookies.get('express.sid'))
 

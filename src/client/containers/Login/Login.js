@@ -49,7 +49,7 @@ class Login extends Component {
         this.setState({ signInError: true })
       })
 
-  componentWillMount () {
+  componentDidMount () {
     if (this.props.location.state) {
       if (this.props.location.state.message) {
         this.setState({
