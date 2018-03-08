@@ -5,7 +5,11 @@ export const types = {
   REMOVE_USER_DATA: 'USER/REMOVE_USER_DATA',
 }
 
-const initialState = {}
+const initialState = {
+  activeChannel: null,
+  activeUser: null,
+  user: null,
+}
 
 export default (state = initialState, action) => {
   switch (action.type) {

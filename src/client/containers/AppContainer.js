@@ -3,7 +3,7 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
 import { node } from 'prop-types'
 import { CookiesProvider } from 'react-cookie'
 import { Provider } from 'react-redux'
-import { store, persistor } from './redux/stores/store'
+import { store, persistor } from '../stores/store'
 import { PersistGate } from 'redux-persist/integration/react'
 
 const AppContainer = ({ children }) => (

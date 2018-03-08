@@ -3,7 +3,9 @@ import RaisedButton from 'material-ui/RaisedButton'
 import TextField from 'material-ui/TextField'
 import Snackbar from 'material-ui/Snackbar'
 import { withRouter, Link } from 'react-router-dom'
-
+import { actions } from '../../reducers/user'
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
 class Login extends Component {
   state = {
     username: '',
@@ -38,11 +40,9 @@ class Login extends Component {
     })
       .then(response => response.json())
       .then(responseJson => {
+        this.props.setUser(responseJson.local.username)
         this.props.history.push({
           pathname: '/chat',
-          state: {
-            username: responseJson.local.username,
-          },
         })
       })
       .catch(() => {
@@ -118,4 +118,12 @@ class Login extends Component {
   }
 }
 
-export default withRouter(Login)
+const mapStateToProps = () => {
+  return {}
+}
+
+const mapDispatchToProps = dispatch => ({
+  ...bindActionCreators(actions, dispatch),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(withRouter(Login))
