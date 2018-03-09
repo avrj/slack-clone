@@ -1,6 +1,7 @@
 ** I'm not going to actively maintain this repo anymore (since Feb 2017), but feel free to fork the project or create PRs **
 
 Possible future improvements:
+* Receive ACKs for outgoing socket.io events
 * Separate the repository to front & back repositories from the current monolithic approach
 * Add state container such as [Redux](https://redux.js.org)
 * Refactor both server & client side code
