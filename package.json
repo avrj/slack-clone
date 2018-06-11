@@ -50,7 +50,7 @@
     "istanbul": "0.4.5",
     "material-ui": "0.20.0",
     "mockgoose": "6.0.8",
-    "mongoose": "5.0.8",
+    "mongoose": "5.1.5",
     "morgan": "1.9.0",
     "node-sass": "4.7.2",
     "passport": "0.4.0",
