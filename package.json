@@ -86,7 +86,7 @@
     "nodemon": "1.17.1",
     "prettier-standard": "8.0.0",
     "supertest": "3.0.0",
-    "webpack-cli": "2.0.10",
+    "webpack-cli": "2.1.5",
     "webpack-dev-middleware": "3.0.0",
     "webpack-hot-middleware": "2.22.2"
   }
